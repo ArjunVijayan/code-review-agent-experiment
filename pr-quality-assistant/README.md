@@ -1,6 +1,6 @@
 # PR Quality Assistant
 
-This package exposes two reusable Agent Skills flows. The Copilot files provide one host adapter; other Agent Skills-compatible agents can discover and invoke the skills directly.
+This package exposes two reusable Agent Skills flows. Start with [AGENTS.md](AGENTS.md); it is the host-neutral entrypoint. The Copilot files provide one optional host adapter; other Agent Skills-compatible agents can discover and invoke the skills directly.
 
 ## On-demand persona flow
 
@@ -18,7 +18,7 @@ For Copilot, the valid session-start hook prompts `repo-intelligence` to check f
 
 ## Compatibility
 
-Any host implementing the Agent Skills specification can use the directories under `skills/`; see `skills/_shared/agent-skills-compatibility.md` for the host contract. The Markdown persona agents and `plugin.json` are optional adapters, while `data/` is the shared persistence format.
+Any host implementing the Agent Skills specification can use `AGENTS.md` and the directories under `skills/`; see `skills/_shared/agent-skills-compatibility.md` for the host contract. The Markdown persona agents, `plugin.json`, and `hooks.json` are optional adapters, while `data/` is the shared persistence format.
 
 ## Documentation consulted
 

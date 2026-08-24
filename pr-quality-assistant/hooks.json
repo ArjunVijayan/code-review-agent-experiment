@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "_comment": "The current GitHub Copilot hooks reference, Hook events section, does not define a PR-merged event. This valid sessionStart prompt asks repo-intelligence to process newly merged PRs and verify merge status.",
+  "_comment": "Optional Copilot adapter only. The current GitHub Copilot hooks reference, Hook events section, does not define a PR-merged event. This valid sessionStart prompt asks repo-intelligence to process newly merged PRs and verify merge status.",
   "hooks": {
     "sessionStart": [
       {
