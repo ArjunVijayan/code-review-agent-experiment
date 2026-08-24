@@ -1,0 +1,30 @@
+{
+  "name": "pr-quality-assistant",
+  "version": "0.1.0",
+  "description": "PR Quality Assistance Agent for GitHub Copilot CLI. Orchestrates requirement analysis, change/blast-radius analysis, test analysis, test generation, and quality reporting for pull requests.",
+  "publisher": "ps-health",
+  "license": "UNLICENSED",
+  "engines": {
+    "copilot-cli": ">=1.0.0"
+  },
+  "entry": {
+    "agents": [
+      "./agents/pr-quality.agent.md"
+    ],
+    "skills": [
+      "./skills/requirement-analysis",
+      "./skills/change-blast-radius",
+      "./skills/test-analysis",
+      "./skills/test-generation",
+      "./skills/quality-report"
+    ]
+  },
+  "keywords": [
+    "pull-request",
+    "code-review",
+    "quality-assurance",
+    "test-coverage",
+    "blast-radius",
+    "agent-skills"
+  ]
+}
