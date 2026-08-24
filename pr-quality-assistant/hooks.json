@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "_comment": "Optional Copilot adapter only. The current GitHub Copilot hooks reference, Hook events section, does not define a PR-merged event. This valid sessionStart prompt asks repo-intelligence to process newly merged PRs and verify merge status.",
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "prompt",
+        "prompt": "Check whether any new pull requests have merged since the last repository-intelligence run. If so, invoke the repo-intelligence agent for each merged PR; otherwise take no action. Verify merge status before updating data files."
+      }
+    ]
+  }
+}
