@@ -2,6 +2,8 @@
 
 This package exposes two reusable Agent Skills flows. Start with [AGENTS.md](AGENTS.md); it is the host-neutral entrypoint. The Copilot files provide one optional host adapter; other Agent Skills-compatible agents can discover and invoke the skills directly.
 
+See [FLOW.md](FLOW.md) for the complete agent and skill flowchart.
+
 ## On-demand persona flow
 
 The developer review and PR quality report personas load repository insights, then share one analysis sequence:
