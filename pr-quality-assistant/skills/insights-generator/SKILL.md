@@ -19,7 +19,8 @@ Turn review feedback into durable repository-specific guidance for the PR-qualit
 3. Compare `(prId, commentHash)` with recorded evidence. Re-running on the same PR must not add duplicate evidence or rules.
 4. Group new comments into actionable recurring patterns. Add a rule only when the feedback identifies a reusable repository practice; otherwise retain the evidence without inventing a rule.
 5. Write the updated structured result to `data/pr-insights.json`, preserving existing entries and provenance.
-6. Regenerate `data/insights.instructions.md` from the current rules. Keep the generated file concise, actionable, and safe to load as agent context.
+6. Inspect repository manifests for language, frameworks, and packages. Check `AGENTS.md` and existing instruction files before writing, and omit rules already covered there.
+7. Regenerate `data/insights.instructions.md` from the current rules. Keep the generated file concise, actionable, and safe to load as agent context. Put shared-module rules first, followed by language/package guidance, dependency health, database rules, category-grouped general rules, and regression guidance.
 
 ## Output Contract
 `data/pr-insights.json` contains this shape:
@@ -38,3 +39,12 @@ Turn review feedback into durable repository-specific guidance for the PR-qualit
 ```
 
 The skill reports changed rule IDs, skipped duplicate evidence, and any comments withheld during cleansing. It must be safe to run repeatedly and must not edit source code.
+
+## Rule Classification
+
+- Keep only generalizable, actionable rules; ignore questions, clarification requests, and one-off line-level nitpicks.
+- Use categories `suggestion`, `defect_pattern`, `performance`, `security`, `testing`, `code_quality`, and `database`.
+- Set `shared: true` and record `module` for shared or common modules.
+- Use `database` for schema, queries, migrations, transactions, and connection handling.
+- Include a dependency-health instruction to check known CVEs and approaching end-of-life dependencies.
+- Include regression guidance to update or add tests, preserve existing coverage, and protect behavior and public contracts.
