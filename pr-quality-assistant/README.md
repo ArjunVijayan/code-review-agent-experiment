@@ -1,10 +1,10 @@
 # PR Quality Assistant
 
-This plugin has two related flows.
+This package exposes two reusable Agent Skills flows. The Copilot files provide one host adapter; other Agent Skills-compatible agents can discover and invoke the skills directly.
 
 ## On-demand persona flow
 
-The developer review and PR quality report agents load repository insights, then share one analysis sequence:
+The developer review and PR quality report personas load repository insights, then share one analysis sequence:
 
 `requirements -> change and blast-radius -> test-analysis -> test-sufficiency`
 
@@ -12,9 +12,13 @@ When tests are insufficient, test generation runs before acceptance-criteria tra
 
 ## Merge-triggered intelligence flow
 
-At session start, the valid Copilot hook prompts `repo-intelligence` to check for newly merged PRs. That agent fetches and cleanses review comments, then calls `insights-generator`, which deduplicates evidence by PR ID and comment hash and updates `data/pr-insights.json` plus `data/insights.instructions.md` when a new reusable rule is found.
+On a merged PR event, the host invokes `repo-intelligence`. That agent fetches and cleanses review comments, then calls `insights-generator`, which deduplicates evidence by PR ID and comment hash and updates `data/pr-insights.json` plus `data/insights.instructions.md` when a new reusable rule is found.
 
-The current Copilot hooks reference has no PR-merged event, so the hook cannot directly subscribe to one. The agent's merge-status check keeps the fallback prompt from recording unmerged PR feedback.
+For Copilot, the valid session-start hook prompts `repo-intelligence` to check for newly merged PRs because the current Copilot hooks reference has no PR-merged event. Other compatible hosts should connect their native PR webhook or scheduled automation to the same agent. The agent's merge-status check keeps any adapter from recording unmerged PR feedback.
+
+## Compatibility
+
+Any host implementing the Agent Skills specification can use the directories under `skills/`; see `skills/_shared/agent-skills-compatibility.md` for the host contract. The Markdown persona agents and `plugin.json` are optional adapters, while `data/` is the shared persistence format.
 
 ## Documentation consulted
 

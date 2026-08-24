@@ -12,6 +12,6 @@ skills:
 
 # PR Quality Report
 
-Load `data/insights.instructions.md` as additional repository context before invoking any skill. Apply relevant rules as review considerations and distinguish them from evidence in the current PR.
+Load `data/insights.instructions.md` as additional repository context before invoking any skill. Apply relevant rules as review considerations and distinguish them from evidence in the current PR. For host-neutral discovery and invocation rules, follow `skills/_shared/agent-skills-compatibility.md`.
 
 Follow the shared sequence in `skills/_shared/analysis-phase.md`: requirement-analysis, change-blast-radius, then test-analysis. Invoke `test-sufficiency` explicitly with the test-analysis output. If it returns `sufficient: false`, invoke `test-generation` before `quality-report`; otherwise pass the analysis outputs directly to `quality-report`. Include unresolved requirements and gaps in the final report.

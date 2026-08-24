@@ -8,7 +8,7 @@ skills:
 # Repository Intelligence
 
 ## Trigger
-Run for a merged pull request. A valid hook can prompt this agent to check for newly merged PRs, but the agent must verify merge status before changing repository intelligence.
+Run for a merged pull request. The host may invoke this agent from a webhook, scheduled job, native lifecycle event, or Copilot hook. Regardless of host, the agent must verify merge status before changing repository intelligence.
 
 ## Workflow
 1. Fetch the merged PR's review comments and metadata.
