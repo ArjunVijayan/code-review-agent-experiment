@@ -9,14 +9,22 @@
   },
   "entry": {
     "agents": [
-      "./agents/pr-quality.agent.md"
+      "./agents/pr-quality.agent.md",
+      "./agents/developer-code-review.agent.md",
+      "./agents/pr-quality-report.agent.md",
+      "./agents/repo-intelligence.agent.md"
     ],
     "skills": [
       "./skills/requirement-analysis",
       "./skills/change-blast-radius",
       "./skills/test-analysis",
       "./skills/test-generation",
-      "./skills/quality-report"
+      "./skills/quality-report",
+      "./skills/test-sufficiency",
+      "./skills/insights-generator"
+    ],
+    "hooks": [
+      "./hooks.json"
     ]
   },
   "keywords": [
