@@ -17,6 +17,13 @@ flowchart TD
     RS --> CT
     IT --> CT
     CT --> MD[review/review-context.md]
+    CT --> AC[Acceptance context facts]
+    AC --> ACM[review/acceptance-criteria.md]
+    CT --> TC[Test and coverage facts]
+    TC --> TCM[review/code-coverage-report.md]
+    MD --> RH[Review handoff]
+    ACM --> RH
+    TCM --> RH
 
     W[Merged PR webhook or scheduled job] --> RI[repo-intelligence]
     RI --> IG[Review comment extraction and cleansing]

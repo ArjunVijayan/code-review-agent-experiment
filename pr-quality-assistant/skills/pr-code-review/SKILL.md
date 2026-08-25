@@ -27,9 +27,18 @@ If no new requests are returned, preserve the existing insight files and state. 
 4. Build the canonical `CodeReviewContext` object with `scripts/collect_context.py`.
 5. Render `review/review-context.md` with `scripts/generate_context.py`. Keep the raw diff last.
 
-## Phase 3: Review Handoff
+## Phase 3: Evidence Analysis
 
-The skill stops after context construction. A later review stage may read, in order, `.github/instructions/insights.instructions.md`, `pr-insights.json`, and `review/review-context.md`, then inspect source code and produce findings. This skill does not review code, generate findings, approve or reject changes, or call GitHub/GitLab APIs.
+1. Run `scripts/extract-acceptance-context.py` with the current context and any provider-supplied PR description, comments, threads, reviews, and issue references.
+2. Synthesize `review/acceptance-criteria.md` from that evidence using `references/acceptance-criteria.md`. Include source, evidence, confidence, and verification for every criterion. Merge semantic duplicates but preserve distinct observable behaviors. If intent is not supported, write `Unknown / cannot determine`; never invent a criterion from engineering convention or implementation detail alone.
+3. Run `scripts/analyze-test-coverage.py` with the current context. It inventories changed behavior candidates, tests, manifests, test commands, and measured coverage files.
+4. Synthesize `review/code-coverage-report.md` from those facts using `references/coverage-analysis.md`. Analyze behavioral execution paths and meaningful success, boundary, and error scenarios. Distinguish measured coverage from change-based test sufficiency, and never fabricate a percentage or claim a test passed without evidence.
+
+The two Markdown files are evidence packages for a later reviewer, not generic prose. Preserve links to changed paths, test names, manifests, coverage reports, PR IDs, and comments wherever available.
+
+## Phase 4: Review Handoff
+
+The skill stops after evidence construction. A later review stage may read, in order, `.github/instructions/insights.instructions.md`, `pr-insights.json`, `review/review-context.md`, `review/acceptance-criteria.md`, and `review/code-coverage-report.md`, then inspect source code and produce findings. This skill does not review code, generate findings, approve or reject changes, or call GitHub/GitLab APIs.
 
 Do not perform code review at this stage.
 
@@ -37,6 +46,6 @@ Do not make approval decisions.
 
 ## Logical Request and Implementation
 
-The client or launcher maps its command syntax to the logical request; the skill does not depend on a specific CLI. The provider maps its API response to the normalized input expected by `scripts/discover-historical-prs.py`. Run `scripts/collect_context.py` to produce the current-change context JSON, then run `scripts/generate_context.py` with that JSON to render the Markdown artifact.
+The client or launcher maps its command syntax to the logical request; the skill does not depend on a specific CLI. The provider maps its API response to the normalized input expected by `scripts/discover-historical-prs.py`. Run `scripts/collect_context.py` to produce the current-change context JSON, then run `scripts/generate_context.py` with that JSON to render the Markdown artifact. Run `scripts/extract-acceptance-context.py` and `scripts/analyze-test-coverage.py` to produce the evidence inputs for the two additional artifacts.
 
 The scripts require Python 3.9 or newer and a Git repository. They use Git only for repository facts and do not call GitHub, GitLab, or any remote API. Historical extraction and semantic deduplication remain model-driven; Python only validates, selects, and persists state.

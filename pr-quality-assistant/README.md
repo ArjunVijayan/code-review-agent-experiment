@@ -2,7 +2,7 @@
 
 This package is an Agent Plugins v1.0 package containing one primary portable Agent Skill. Clients discover it from the fixed `skills/` directory; no custom agent or orchestration layer is required.
 
-The `pr-code-review` skill first refreshes incremental historical intelligence, then collects Git-only context for a logical request such as `{ "base": "main", "source": "dev/bug_fix" }`. It creates a structured `CodeReviewContext` and renders `review/review-context.md` without reviewing code or calling a hosting API.
+The `pr-code-review` skill first refreshes incremental historical intelligence, then collects Git-only context for a logical request such as `{ "base": "main", "source": "dev/bug_fix" }`. It creates a structured `CodeReviewContext`, renders `review/review-context.md`, and prepares evidence packages for `review/acceptance-criteria.md` and `review/code-coverage-report.md` without reviewing code or calling a hosting API.
 
 See [FLOW.md](FLOW.md) for the complete skill flowchart.
 
@@ -10,7 +10,7 @@ See [FLOW.md](FLOW.md) for the complete skill flowchart.
 
 The `pr-code-review` skill provides the context handoff for developer-facing pre-PR review and PR-facing quality reporting:
 
-`historical intelligence -> validate refs -> collect current context -> review handoff`
+`historical intelligence -> current context -> acceptance analysis + coverage analysis -> review handoff`
 
 When tests are insufficient, test generation runs before acceptance-criteria traceability and the final quality report.
 
