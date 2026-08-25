@@ -15,6 +15,7 @@ def inline(value: object) -> str:
 def render(context: dict) -> str:
     repository = context["repository"]
     change = context["change"]
+    change_request = context.get("change_request", {})
     lines = [
         "# Code Review Context",
         "",
@@ -23,6 +24,7 @@ def render(context: dict) -> str:
         f"- Base: `{inline(change['base'])}`",
         f"- Source: `{inline(change['source'])}`",
         f"- Merge Base: `{inline(change['merge_base'])}`",
+        f"- PR/MR: `{inline(change_request.get('url', 'Not supplied'))}`",
         "",
         "## 2. Repository",
         "",

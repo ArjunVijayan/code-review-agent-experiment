@@ -12,6 +12,13 @@ from urllib.parse import quote
 
 def render(result: dict) -> str:
     status = html.escape(result.get("status", "FAILED"))
+    pull_request = result.get("pull_request", {})
+    request_url = str(pull_request.get("url", ""))
+    request_link = (
+        f'<a href="{html.escape(request_url, quote=True)}">{html.escape(request_url)}</a>'
+        if request_url.startswith(("https://", "http://"))
+        else html.escape(request_url or "Not supplied")
+    )
     gates = result.get("gates", {})
     def gate_score(gate: dict) -> str:
         if str(gate.get("status", "")).upper() == "UNAVAILABLE":
@@ -43,7 +50,7 @@ def render(result: dict) -> str:
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>PR Code Review</title>
 <style>body{{font:16px system-ui,sans-serif;max-width:960px;margin:2rem auto;padding:0 1rem;color:#202124}}h1{{border-bottom:2px solid #202124;padding-bottom:.5rem}}table{{border-collapse:collapse;width:100%;margin:1rem 0}}th,td{{border:1px solid #c8c8c8;padding:.6rem;text-align:left}}th{{background:#f2f2f2}}.status{{font-size:1.4rem;font-weight:700}}.APPROVED{{color:#176b36}}.FAILED{{color:#a12622}}</style></head>
-<body><h1>PR Code Review</h1><p class="status {status}">FINAL RESULT: {status}</p>
+<body><h1>PR Code Review</h1><p>PR/MR: {request_link}</p><p class="status {status}">FINAL RESULT: {status}</p>
 <h2>Review Gates</h2><table><thead><tr><th>Gate</th><th>Status</th><th>Score / Evidence</th></tr></thead><tbody>{gate_rows}</tbody></table>
 <h2>Issues</h2><table><thead><tr><th>ID</th><th>Severity</th><th>Issue</th><th>Evidence</th><th>Reference</th></tr></thead><tbody>{issues}</tbody></table>
 <h2>Decision</h2><p>Approval requires every blocking gate to pass and no blocking-severity finding.</p></body></html>

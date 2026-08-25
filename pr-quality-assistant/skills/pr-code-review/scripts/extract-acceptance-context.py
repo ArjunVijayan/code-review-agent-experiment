@@ -70,6 +70,7 @@ def extract(context: dict, repository: Path, provider_payload: dict | None) -> d
             "existing tests",
             "repository conventions",
         ],
+        "change_request": context.get("change_request"),
         "change": {
             "base": change["base"],
             "source": change["source"],

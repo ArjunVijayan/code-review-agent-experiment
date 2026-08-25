@@ -52,8 +52,10 @@ def collect_tests(repository: Path, changed_files: list[dict]) -> dict:
     return {"manifests": manifests, "test_files": test_files, "changed_tests": changed_tests}
 
 
-def collect_full_context(repository: Path, base: str, source: str) -> dict:
+def collect_full_context(repository: Path, base: str, source: str, change_request: dict | None = None) -> dict:
     context = collect_context(repository, base, source)
+    if change_request:
+        context["change_request"] = change_request
     files = relative_files(repository)
     context["repository"].update(
         {
@@ -72,14 +74,31 @@ def collect_full_context(repository: Path, base: str, source: str) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--base", required=True)
-    parser.add_argument("--source", required=True)
+    parser.add_argument("--base")
+    parser.add_argument("--source")
+    parser.add_argument("--pr-url", "--change-request", dest="change_request")
+    parser.add_argument("--provider-input", type=Path, help="Normalized JSON containing base_ref and source_ref for the PR/MR")
     parser.add_argument("--repository", default=".")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     try:
         repository = resolve_repository(args.repository)
-        context = collect_full_context(repository, args.base, args.source)
+        change_request = None
+        if args.change_request:
+            if not args.provider_input:
+                raise GitContextError("a PR/MR URL requires --provider-input with normalized base_ref and source_ref metadata")
+            change_request = json.loads(args.provider_input.read_text(encoding="utf-8"))
+            base = args.base or change_request.get("base_ref") or change_request.get("base", "")
+            source = args.source or change_request.get("source_ref") or change_request.get("source", "")
+            if not base or not source:
+                raise GitContextError("provider metadata must include base_ref and source_ref")
+            change_request = {**change_request, "url": args.change_request}
+        else:
+            base = args.base
+            source = args.source
+        if not base or not source:
+            raise GitContextError("provide both --base and --source, or provide --pr-url with --provider-input")
+        context = collect_full_context(repository, base, source, change_request)
     except GitContextError as error:
         print(f"Context collection failed.\n\nReason:\n{error}", file=sys.stderr)
         return 1

@@ -5,7 +5,9 @@ description: Builds incremental historical review intelligence, collects Git rep
 
 # PR Code Review
 
-When invoked with the logical request `{ "base": "main", "source": "dev/bug_fix" }`, execute the phases below in order. Current-change context and historical knowledge are separate artifacts and must not be conflated.
+When invoked with either `{ "base": "main", "source": "dev/bug_fix" }` or `{ "change_request": "https://host.example/owner/repo/pull/123" }`, execute the phases below in order. Current-change context and historical knowledge are separate artifacts and must not be conflated.
+
+For a PR/MR URL, the host must provide normalized metadata containing `base_ref` and `source_ref`; the collector does not call a hosting API or infer branch names from a URL. Direct `base` and `source` values override provider metadata when both are supplied.
 
 ## Phase 1: Historical Intelligence
 
@@ -58,6 +60,6 @@ Do not make approval decisions.
 
 ## Logical Request and Implementation
 
-The client or launcher maps its command syntax to the logical request; the skill does not depend on a specific CLI. The provider maps its API response to the normalized input expected by `scripts/discover-historical-prs.py`. Run `scripts/collect_context.py` to produce the current-change context JSON, then run `scripts/generate_context.py` with that JSON to render the Markdown artifact. Run `scripts/extract-acceptance-context.py` and `scripts/analyze-test-coverage.py` to produce the evidence inputs for the two additional artifacts.
+The client or launcher maps its command syntax to the logical request; the skill does not depend on a specific CLI. It may provide direct refs or a PR/MR URL plus normalized provider metadata. Run `scripts/collect_context.py` to produce the current-change context JSON, then run `scripts/generate_context.py` with that JSON to render the Markdown artifact. Run `scripts/extract-acceptance-context.py` and `scripts/analyze-test-coverage.py` to produce the evidence inputs for the two additional artifacts.
 
 The scripts require Python 3.9 or newer and a Git repository. They use Git only for repository facts and do not call GitHub, GitLab, or any remote API. Historical extraction and semantic deduplication remain model-driven; Python only validates, selects, and persists state.
