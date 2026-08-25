@@ -52,7 +52,9 @@ The AI-slop gate reports only unnecessary complexity, risk, duplication, mainten
 
 ## Phase 5: Review Handoff
 
-The skill stops after producing the structured result and HTML report. A merger or other downstream agent should consume `review/review-result.json`, not parse HTML or reinterpret an LLM response. This skill does not approve or reject changes on behalf of a host; it records the policy evaluation and decision.
+Run `scripts/archive-review-run.py --base <base> --source <source>` after the final artifacts are produced. It snapshots the current diff/context, acceptance criteria, code-coverage report, historical insights, instructions, assessment, result, and HTML report under `.code-review/runs/<run-id>/`, with SHA-256 hashes and base/source commits in `manifest.json`. Missing artifacts are recorded in the manifest so monitoring can distinguish unavailable evidence from an empty file.
+
+The skill stops after archiving the structured result and HTML report. A merger or other downstream agent should consume `review/review-result.json`, not parse HTML or reinterpret an LLM response. This skill does not approve or reject changes on behalf of a host; it records the policy evaluation and decision.
 
 Do not perform code review at this stage.
 
@@ -62,4 +64,4 @@ Do not make approval decisions.
 
 The client or launcher maps its command syntax to the logical request; the skill does not depend on a specific CLI. It may provide direct refs or a PR/MR URL plus normalized provider metadata. Run `scripts/collect_context.py` to produce the current-change context JSON, then run `scripts/generate_context.py` with that JSON to render the Markdown artifact. Run `scripts/extract-acceptance-context.py` and `scripts/analyze-test-coverage.py` to produce the evidence inputs for the two additional artifacts.
 
-The scripts require Python 3.9 or newer and a Git repository. They use Git only for repository facts and do not call GitHub, GitLab, or any remote API. Historical extraction and semantic deduplication remain model-driven; Python only validates, selects, and persists state.
+The scripts require Python 3.9 or newer and a Git repository. They use Git only for repository facts and do not call GitHub, GitLab, or any remote API. Historical extraction and semantic deduplication remain model-driven; Python only validates, selects, persists, and archives state.

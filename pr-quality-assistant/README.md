@@ -18,6 +18,8 @@ The merger flow is:
 
 `review-result.json + change summary -> blast-radius assessment -> policy gates -> merge-result.json`
 
+Each review run is archived under `.code-review/runs/<run-id>/` with a manifest and hashes for the current context/diff, acceptance criteria, coverage report, historical insights, final result, and HTML report. This archive is the traceability source; `review/` is the working output directory.
+
 When tests are insufficient, test generation runs before acceptance-criteria traceability and the final quality report.
 
 ## Merge-triggered intelligence flow
