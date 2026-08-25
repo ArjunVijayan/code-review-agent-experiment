@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 GATES = ("coverage", "acceptance_criteria", "coding_guidelines", "historical_review", "ai_slop")
-VALID_STATUSES = {"PASS", "FAIL", "UNCERTAIN", "NOT_APPLICABLE"}
+VALID_STATUSES = {"PASS", "FAIL", "UNCERTAIN", "UNAVAILABLE", "NOT_APPLICABLE"}
 
 
 def fingerprint(finding: dict) -> str:
@@ -40,11 +40,11 @@ def consolidate_findings(gates: dict) -> list[dict]:
 
 
 def gate_status(name: str, gate: dict, policy: dict) -> str:
-    status = str(gate.get("status", "UNCERTAIN")).upper()
+    status = str(gate.get("status", "UNAVAILABLE")).upper()
     if status not in VALID_STATUSES:
-        return "UNCERTAIN"
+        return "UNAVAILABLE"
     if name == "coverage" and status == "PASS" and gate.get("score") is None:
-        return "UNCERTAIN"
+        return "UNAVAILABLE"
     if name == "coverage" and policy[name].get("blocking") and gate.get("score") is not None:
         if float(gate["score"]) < float(policy[name]["threshold"]):
             return "FAIL"
@@ -71,7 +71,7 @@ def evaluate(assessment: dict, policy: dict) -> dict:
     findings = consolidate_findings(evaluated_gates)
     blocking_severities = set(policy.get("blocking_severities", []))
     blocking_findings = [item for item in findings if str(item.get("severity", "INFO")).upper() in blocking_severities]
-    gate_failure = any(gate["status"] in {"FAIL", "UNCERTAIN"} and policy[name].get("blocking", False) for name, gate in evaluated_gates.items())
+    gate_failure = any(gate["status"] in {"FAIL", "UNCERTAIN", "UNAVAILABLE"} and policy[name].get("blocking", False) for name, gate in evaluated_gates.items())
     return {
         "status": "FAILED" if gate_failure or blocking_findings else "APPROVED",
         "pull_request": assessment.get("pull_request", {}),

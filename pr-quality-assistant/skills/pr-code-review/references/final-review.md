@@ -13,8 +13,8 @@ The reviewer first produces `review/review-assessment.json` using the contract b
 
 ## Five Gates
 
-1. **Coverage**: evaluate meaningful behavioral scenarios, using measured coverage only when available. A missing score is `UNCERTAIN`, never a pass. The default blocking threshold is 95 and is configurable.
-2. **Acceptance criteria**: evaluate every criterion independently as `PASS`, `FAIL`, `UNCERTAIN`, or `NOT_APPLICABLE`. Mandatory or high-confidence criteria must all pass.
+1. **Coverage**: evaluate meaningful behavioral scenarios, using measured coverage only when available. Missing coverage evidence is `UNAVAILABLE`, never a pass. The default blocking threshold is 95 and is configurable.
+2. **Acceptance criteria**: evaluate every criterion independently as `PASS`, `FAIL`, `UNCERTAIN`, `UNAVAILABLE`, or `NOT_APPLICABLE`. Mandatory or high-confidence criteria must all pass; missing criteria evidence is `UNAVAILABLE`.
 3. **Coding guidelines**: check repository, language, framework, dependency, database, security, testing, and shared-module rules.
 4. **Historical compliance**: identify whether the current change reintroduces a historical defect pattern, with explicit historical and current evidence.
 5. **AI-slop**: report only unnecessary complexity, risk, duplication, maintenance burden, or convention violations. Never flag code merely because it appears AI-generated.
@@ -36,4 +36,4 @@ Any gate finding must include `id`, `gate`, `severity`, `issue`, `impact`, `evid
 }
 ```
 
-Statuses supplied by the reviewer are validated against the policy. `FAIL` and `UNCERTAIN` never become `PASS`. Overall approval requires every blocking gate to pass and no blocking-severity finding. The final result is structured first; HTML is presentation only.
+Statuses supplied by the reviewer are validated against the policy. `FAIL`, `UNCERTAIN`, and `UNAVAILABLE` never become `PASS`; missing gates are normalized to `UNAVAILABLE`. Overall approval requires every blocking gate to pass and no blocking-severity finding. The final result is structured first; HTML is presentation only and is always generated, including failed or unavailable results.

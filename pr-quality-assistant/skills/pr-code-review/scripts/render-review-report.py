@@ -14,6 +14,8 @@ def render(result: dict) -> str:
     status = html.escape(result.get("status", "FAILED"))
     gates = result.get("gates", {})
     def gate_score(gate: dict) -> str:
+        if str(gate.get("status", "")).upper() == "UNAVAILABLE":
+            return str(gate.get("unavailable_reason", "Required evidence unavailable"))
         if gate.get("score") is not None:
             return str(gate["score"])
         passed = gate.get("passed")
@@ -23,7 +25,7 @@ def render(result: dict) -> str:
         return "Not measured"
 
     gate_rows = "".join(
-        f"<tr><td>{html.escape(name.replace('_', ' ').title())}</td><td>{html.escape(str(gate.get('status', 'UNCERTAIN')))}</td><td>{html.escape(gate_score(gate))}</td></tr>"
+        f"<tr><td>{html.escape(name.replace('_', ' ').title())}</td><td>{html.escape(str(gate.get('status', 'UNAVAILABLE')))}</td><td>{html.escape(gate_score(gate))}</td></tr>"
         for name, gate in gates.items()
     )
 
