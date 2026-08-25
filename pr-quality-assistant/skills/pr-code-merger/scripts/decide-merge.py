@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from urllib.parse import urlparse
 
 
 GATES = ("coverage", "acceptance_criteria", "coding_guidelines", "historical_review", "ai_slop")
@@ -50,17 +51,21 @@ def decision(review: dict, blast_radius: dict, policy: dict, reference: str, mer
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("review_result", type=Path)
-    parser.add_argument("blast_radius", type=Path)
+    parser.add_argument("--review-result", type=Path, required=True, help="Path to authoritative review-result.json")
+    parser.add_argument("--blast-radius", type=Path, required=True, help="Path to the model-produced blast-radius assessment JSON")
+    parser.add_argument("--change-request", "--pr-url", dest="change_request", required=True, help="Absolute PR/MR URL")
     parser.add_argument("--policy", type=Path, required=True)
-    parser.add_argument("--reference", default="")
     parser.add_argument("--merge-executed", action="store_true")
     parser.add_argument("--output", type=Path, default=Path("review/merge-result.json"))
     args = parser.parse_args()
+    parsed_url = urlparse(args.change_request)
+    if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
+        parser.error("--change-request must be an absolute HTTP(S) PR/MR URL")
     review = json.loads(args.review_result.read_text(encoding="utf-8"))
     blast_radius = json.loads(args.blast_radius.read_text(encoding="utf-8"))
     policy = json.loads(args.policy.read_text(encoding="utf-8"))
-    result = decision(review, blast_radius, policy, args.reference, args.merge_executed)
+    result = decision(review, blast_radius, policy, args.change_request, args.merge_executed)
+    result["change_request"] = {"url": args.change_request}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print(args.output)

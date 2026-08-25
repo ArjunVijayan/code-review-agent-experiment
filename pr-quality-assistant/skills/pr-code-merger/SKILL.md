@@ -5,12 +5,12 @@ description: Evaluates a completed review-result.json, reasons about change blas
 
 # PR Code Merger
 
-This is a portable skill, not an orchestration agent. It consumes `review/review-result.json` as the authoritative review input. `review/review-report.html` is a human-readable reference only and must never be parsed as the primary decision source.
+This is a portable skill, not an orchestration agent. It consumes an explicit `review-result.json` path and a PR/MR link. The JSON is the authoritative review input. `review-report.html` is a human-readable reference only and must never be parsed as the primary decision source.
 
 ## Inputs
 
-- PR/MR reference supplied by the host, such as a URL or provider-neutral identifier
-- `review/review-result.json` from `pr-code-review`
+- PR/MR link supplied by the host, such as `https://host.example/owner/repo/pull/123`
+- Path to `review-result.json` from `pr-code-review`
 - `review/review-report.html` for human reference when available
 - A concise change summary with requirements, affected files, behavior, and tests
 - Source and repository facts available to the host
@@ -18,12 +18,12 @@ This is a portable skill, not an orchestration agent. It consumes `review/review
 
 ## Workflow
 
-1. Validate that the review result exists, is valid JSON, and contains all five gate results and `blocking_findings`.
+1. Accept `--review-result <path>`, `--change-request <PR/MR URL>`, and `--blast-radius <assessment JSON path>`. Validate that the review result exists, is valid JSON, and contains all five gate results and `blocking_findings`.
 2. If the review result is failed, uncertain, missing required gates, or contains blocking findings, produce `human_review` and `do_not_merge` without calculating an auto-merge approval.
 3. Use deterministic facts for changed files, lines, commits, modified symbols, dependency graph, and contracts where available. Do not ask the LLM to count files or lines.
 4. Ask the LLM to assess the six blast-radius dimensions: change size, dependency reach, architectural criticality, data impact, contract impact, and runtime/deployment impact. Each assessment must include evidence and justification.
 5. Produce `review/blast-radius-report.md` with the six dimensions, affected components, dependency impact, contract impact, risk factors, mitigating factors, overall level, and optional score.
-6. Apply `references/merge-policy.json` to the review result and blast-radius assessment with `scripts/decide-merge.py`. Low risk can be auto-merge eligible only when all blocking review gates pass and no blocking finding exists. Medium, high, and critical risk require human review by default.
+6. Apply `references/merge-policy.json` to the review result and blast-radius assessment with `scripts/decide-merge.py --review-result <path> --change-request <url> --blast-radius <path>`. Low risk can be auto-merge eligible only when all blocking review gates pass and no blocking finding exists. Medium, high, and critical risk require human review by default.
 7. Write `review/merge-result.json`. Distinguish `decision` from `action`: a decision to auto-merge is not proof that a merge occurred.
 8. If the host provides a merge tool and policy allows execution, invoke it only after the decision. Verify the resulting PR/MR state before reporting `status: merged`; otherwise use `merge_not_executed`.
 
