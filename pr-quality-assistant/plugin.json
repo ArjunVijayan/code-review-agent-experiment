@@ -1,29 +1,12 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "pr-quality-assistant",
-  "version": "0.1.0",
-  "description": "Agent Skills-compatible PR quality workflow with reusable review analysis, test sufficiency, quality reporting, and repository intelligence.",
-  "publisher": "ps-health",
-  "license": "UNLICENSED",
-  "entry": {
-    "agents": [
-      "./agents/pr-quality.agent.md",
-      "./agents/developer-code-review.agent.md",
-      "./agents/pr-quality-report.agent.md",
-      "./agents/repo-intelligence.agent.md"
-    ],
-    "skills": [
-      "./skills/requirement-analysis",
-      "./skills/change-blast-radius",
-      "./skills/test-analysis",
-      "./skills/test-generation",
-      "./skills/quality-report",
-      "./skills/test-sufficiency",
-      "./skills/insights-generator"
-    ],
-    "hooks": [
-      "./hooks.json"
-    ]
+  "version": "0.2.0",
+  "description": "Portable Agent Skills for pull-request review, test sufficiency, quality reporting, and repository intelligence.",
+  "author": {
+    "name": "ps-health"
   },
+  "license": "UNLICENSED",
   "keywords": [
     "pull-request",
     "code-review",

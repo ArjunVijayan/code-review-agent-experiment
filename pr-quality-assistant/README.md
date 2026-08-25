@@ -1,12 +1,12 @@
 # PR Quality Assistant
 
-This package exposes two reusable Agent Skills flows. Start with [AGENTS.md](AGENTS.md); it is the host-neutral entrypoint. The Copilot files provide one optional host adapter; other Agent Skills-compatible agents can discover and invoke the skills directly.
+This package is an Agent Plugins v1.0 package containing two portable Agent Skills. Clients discover them from the fixed `skills/` directory; no custom agent or orchestration layer is required.
 
 See [FLOW.md](FLOW.md) for the complete agent and skill flowchart.
 
 ## On-demand persona flow
 
-The developer review and PR quality report personas load repository insights, then share one analysis sequence:
+The `pr-quality-review` skill provides both developer-facing pre-PR review and PR-facing quality reporting in one workflow:
 
 `requirements -> change and blast-radius -> test-analysis -> test-sufficiency`
 
@@ -14,16 +14,14 @@ When tests are insufficient, test generation runs before acceptance-criteria tra
 
 ## Merge-triggered intelligence flow
 
-On a merged PR event, the host invokes `repo-intelligence`. That agent fetches and cleanses review comments, then calls `insights-generator`, which deduplicates evidence by PR ID and comment hash and updates `data/pr-insights.json` plus `data/insights.instructions.md` when a new reusable rule is found.
+On a merged PR event, the host invokes `repo-intelligence`. That skill fetches and cleanses review comments, deduplicates evidence by PR ID and comment hash, and updates `pr-insights.json` plus `.github/instructions/insights.instructions.md` when a new reusable rule is found.
 
-For Copilot, the valid session-start hook prompts `repo-intelligence` to check for newly merged PRs because the current Copilot hooks reference has no PR-merged event. Other compatible hosts should connect their native PR webhook or scheduled automation to the same agent. The agent's merge-status check keeps any adapter from recording unmerged PR feedback.
+The host supplies the merged-PR webhook, scheduled job, or native lifecycle event. Hosts without lifecycle events may invoke the skill manually, but it must verify merge status before writing either output.
 
 ## Compatibility
 
-Any host implementing the Agent Skills specification can use `AGENTS.md` and the directories under `skills/`; see `skills/_shared/agent-skills-compatibility.md` for the host contract. The Markdown persona agents, `plugin.json`, and `hooks.json` are optional adapters, while `data/` is the shared persistence format.
+Any Agent Plugins-compatible client can load this package. An Agent Skills-compatible client can also consume the two `SKILL.md` files directly. The open standard controls package and skill discovery; each host controls user experience and event delivery.
 
-## Documentation consulted
+## Standard
 
-- [GitHub Copilot plugins](https://docs.github.com/en/copilot/concepts/agents/plugins) for the requested plugin conventions (the page was unavailable during validation).
-- [GitHub Copilot hooks reference](https://docs.github.com/en/copilot/reference/hooks-configuration), especially **Hook configuration format** and **Hook events**.
-- [Using hooks with GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/use-hooks) for the `version: 1` and `sessionStart` configuration examples.
+This package follows [Agent Plugins Specification 1.0.0](https://github.com/agentplugins/agent-plugins-spec/blob/main/spec/1.0.0.md) and [Agent Skills Specification](https://agentskills.io/specification). The plugin manifest uses the canonical Agent Plugins schema; skills are discovered from `skills/<name>/SKILL.md`.
