@@ -5,7 +5,7 @@ description: Builds incremental historical review intelligence, collects Git rep
 
 # PR Code Review
 
-When invoked with either `{ "base": "main", "source": "dev/bug_fix" }` or `{ "change_request": "https://host.example/owner/repo/pull/123" }`, execute the phases below in order. Current-change context and historical knowledge are separate artifacts and must not be conflated.
+When invoked with either `{ "base": "main", "source": "dev/bug_fix" }` or `{ "change_request": "https://host.example/owner/repo/pull/123" }`, execute the phases below in order. Current-change context and historical knowledge are separate artifacts and must not be conflated. CLI adapters may expose the URL as `--pr-url`, `--change-request`, or `--change-url`.
 
 For a PR/MR URL, the host must provide normalized metadata containing `base_ref` and `source_ref`; the collector does not call a hosting API or infer branch names from a URL. Direct `base` and `source` values override provider metadata when both are supplied.
 
