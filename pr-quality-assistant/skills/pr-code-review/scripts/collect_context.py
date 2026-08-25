@@ -77,7 +77,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base")
     parser.add_argument("--source")
-    parser.add_argument("--pr-url", "--change-request", "--change-url", dest="change_request")
+    parser.add_argument("--pr-url", "--change-request", "--change-url", "--change_url", dest="change_request")
     parser.add_argument("--provider-input", type=Path, help="Normalized JSON containing base_ref and source_ref for the PR/MR")
     parser.add_argument("--repository", default=".")
     parser.add_argument("--output", type=Path)

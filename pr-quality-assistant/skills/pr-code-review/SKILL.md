@@ -5,7 +5,7 @@ description: Builds incremental historical review intelligence, collects Git rep
 
 # PR Code Review
 
-When invoked with either `{ "base": "main", "source": "dev/bug_fix" }` or `{ "change_request": "https://host.example/owner/repo/pull/123" }`, execute the phases below in order. Current-change context and historical knowledge are separate artifacts and must not be conflated. CLI adapters may expose the URL as `--pr-url`, `--change-request`, or `--change-url`.
+When invoked with either `{ "base": "main", "source": "dev/bug_fix" }` or `{ "change_request": "https://host.example/owner/repo/pull/123" }`, execute the phases below in order. Current-change context and historical knowledge are separate artifacts and must not be conflated. CLI adapters may expose the URL as `--pr-url`, `--change-request`, `--change-url`, or `--change_url`.
 
 For a GitHub PR URL, the collector resolves `base_ref` and `source_ref` automatically through the GitHub API and preserves the PR metadata. Private or rate-limited repositories require `GITHUB_TOKEN` or `GH_TOKEN`. Other PR/MR providers may still supply normalized metadata with `base_ref` and `source_ref` through `--provider-input`. Direct `base` and `source` values override provider metadata when both are supplied.
 
