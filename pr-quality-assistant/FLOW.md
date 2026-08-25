@@ -2,18 +2,18 @@
 
 ```mermaid
 flowchart TD
-    H[Agent Skills-compatible host] --> CR[code-review skill]
+    H[Agent Skills-compatible host] --> CR[pr-code-review skill]
     CR --> V[Validate repository and refs]
     V --> MB[Calculate merge base]
     MB --> C[Collect CodeReviewContext]
     C --> GM[Git metadata]
     C --> DF[Diff and changed files]
-    C --> RH[Commit history]
+    C --> CH[Commit history]
     C --> RS[Repository structure]
     C --> IT[Instructions and tests]
     GM --> CT[Context JSON]
     DF --> CT
-    RH --> CT
+    CH --> CT
     RS --> CT
     IT --> CT
     CT --> MD[review/review-context.md]
@@ -24,6 +24,9 @@ flowchart TD
     MD --> RH[Review handoff]
     ACM --> RH
     TCM --> RH
+    RH --> FR[Final five-gate review]
+    FR --> RR[review/review-result.json]
+    RR --> HTML[review/review-report.html]
 
     W[Merged PR webhook or scheduled job] --> RI[repo-intelligence]
     RI --> IG[Review comment extraction and cleansing]

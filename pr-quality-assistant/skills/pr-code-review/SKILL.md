@@ -36,9 +36,21 @@ If no new requests are returned, preserve the existing insight files and state. 
 
 The two Markdown files are evidence packages for a later reviewer, not generic prose. Preserve links to changed paths, test names, manifests, coverage reports, PR IDs, and comments wherever available.
 
-## Phase 4: Review Handoff
+## Phase 4: Final Review Assessment
 
-The skill stops after evidence construction. A later review stage may read, in order, `.github/instructions/insights.instructions.md`, `pr-insights.json`, `review/review-context.md`, `review/acceptance-criteria.md`, and `review/code-coverage-report.md`, then inspect source code and produce findings. This skill does not review code, generate findings, approve or reject changes, or call GitHub/GitLab APIs.
+The final reviewer consumes `.github/instructions/insights.instructions.md`, `pr-insights.json`, `review/review-context.md`, `review/acceptance-criteria.md`, `review/code-coverage-report.md`, and the relevant source code. Evaluate exactly five gates: coverage, acceptance criteria, coding guidelines, historical compliance, and AI-slop. Use `references/final-review.md` to produce `review/review-assessment.json`.
+
+Every gate must be `PASS`, `FAIL`, `UNCERTAIN`, or `NOT_APPLICABLE`. Do not convert missing evidence or uncertainty into a pass. Findings must include severity from `BLOCKER`, `CRITICAL`, `MAJOR`, `MINOR`, or `INFO`, plus issue, impact, evidence, reference, recommendation, and a stable fingerprint when the same underlying issue appears in multiple gates.
+
+Run `scripts/evaluate-review.py review/review-assessment.json --policy references/review-policy.json` to produce the canonical `review/review-result.json`. The evaluator applies the configurable coverage threshold (default 95), mandatory gate rules, blocking severities, and AI-slop limits. It consolidates duplicate findings across gates. Approval requires all blocking gates to pass and no blocking-severity finding.
+
+Run `scripts/render-review-report.py review/review-result.json` to produce the human-facing `review/review-report.html`. HTML is presentation only; downstream automation must consume `review/review-result.json`.
+
+The AI-slop gate reports only unnecessary complexity, risk, duplication, maintenance burden, or repository-convention violations. Do not flag code merely because it appears AI-generated.
+
+## Phase 5: Review Handoff
+
+The skill stops after producing the structured result and HTML report. A merger or other downstream agent should consume `review/review-result.json`, not parse HTML or reinterpret an LLM response. This skill does not approve or reject changes on behalf of a host; it records the policy evaluation and decision.
 
 Do not perform code review at this stage.
 
