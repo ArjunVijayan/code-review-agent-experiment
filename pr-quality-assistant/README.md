@@ -2,7 +2,9 @@
 
 This package is an Agent Plugins v1.0 package containing two portable Agent Skills. Clients discover them from the fixed `skills/` directory; no custom agent or orchestration layer is required.
 
-See [FLOW.md](FLOW.md) for the complete agent and skill flowchart.
+The first stage is the Git-only `code-review` skill. Invoke it with a logical request such as `{ "base": "main", "source": "dev/bug_fix" }`; it creates a structured `CodeReviewContext` and renders `review/review-context.md` without reviewing code or calling a hosting API.
+
+See [FLOW.md](FLOW.md) for the complete skill flowchart.
 
 ## On-demand persona flow
 
