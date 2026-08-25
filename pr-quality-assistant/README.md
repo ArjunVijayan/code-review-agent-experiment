@@ -1,8 +1,10 @@
 # PR Quality Assistant
 
-This package is an Agent Plugins v1.0 package containing one primary portable Agent Skill. Clients discover it from the fixed `skills/` directory; no custom agent or orchestration layer is required.
+This package is an Agent Plugins v1.0 package containing two portable Agent Skills. Clients discover them from the fixed `skills/` directory; no custom agent or orchestration layer is required.
 
 The `pr-code-review` skill first refreshes incremental historical intelligence, then collects Git-only context for a logical request such as `{ "base": "main", "source": "dev/bug_fix" }`. It creates a structured `CodeReviewContext`, renders evidence packages, evaluates five review gates, and produces `review/review-result.json` plus `review/review-report.html` without calling a hosting API.
+
+The `pr-code-merger` skill consumes `review/review-result.json` as its authoritative input, assesses blast radius using deterministic facts plus LLM reasoning, and produces `review/blast-radius-report.md` and `review/merge-result.json`. It does not parse HTML to make decisions and never claims a PR was merged unless the host executed and verified the merge.
 
 See [FLOW.md](FLOW.md) for the complete skill flowchart.
 
@@ -11,6 +13,10 @@ See [FLOW.md](FLOW.md) for the complete skill flowchart.
 The `pr-code-review` skill provides the context handoff for developer-facing pre-PR review and PR-facing quality reporting:
 
 `historical intelligence -> current context -> acceptance + coverage evidence -> five-gate evaluation -> JSON result + HTML report`
+
+The merger flow is:
+
+`review-result.json + change summary -> blast-radius assessment -> policy gates -> merge-result.json`
 
 When tests are insufficient, test generation runs before acceptance-criteria traceability and the final quality report.
 

@@ -28,7 +28,19 @@ flowchart TD
     FR --> RR[review/review-result.json]
     RR --> HTML[review/review-report.html]
 
-    W[Merged PR webhook or scheduled job] --> RI[repo-intelligence]
+    RR --> MR[pr-code-merger skill]
+    MR --> BR[Six-dimension blast-radius assessment]
+    BR --> BRM[review/blast-radius-report.md]
+    BR --> MP[Merge policy]
+    MP --> DEC{Low risk and all gates pass?}
+    DEC -->|yes| AM[auto_merge decision]
+    DEC -->|no| HR[human_review decision]
+    AM --> MERGE[Optional host merge tool]
+    MERGE --> VERIFY[Verify merged state]
+    VERIFY --> MJSON[review/merge-result.json]
+    HR --> MJSON
+
+    W[Merged PR webhook or scheduled job] --> RI[Historical intelligence phase]
     RI --> IG[Review comment extraction and cleansing]
     IG --> D[Deduplicate by PR ID + comment hash]
     D --> J[pr-insights.json]
