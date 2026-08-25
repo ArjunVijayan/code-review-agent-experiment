@@ -2,7 +2,7 @@
 
 This package is an Agent Plugins v1.0 package containing two portable Agent Skills. Clients discover them from the fixed `skills/` directory; no custom agent or orchestration layer is required.
 
-The `pr-code-review` skill first refreshes incremental historical intelligence, then collects Git-only context for either `{ "base": "main", "source": "dev/bug_fix" }` or a PR/MR URL with host-supplied `base_ref` and `source_ref` metadata. It creates a structured `CodeReviewContext`, renders evidence packages, evaluates five review gates, and produces `review/review-result.json` plus `review/review-report.html` without calling a hosting API.
+The `pr-code-review` skill first refreshes incremental historical intelligence, then collects Git-only context for either `{ "base": "main", "source": "dev/bug_fix" }` or a GitHub PR/MR URL. GitHub URLs resolve their refs automatically; other providers can supply normalized `base_ref` and `source_ref` metadata. It creates a structured `CodeReviewContext`, renders evidence packages, evaluates five review gates, and produces `review/review-result.json` plus `review/review-report.html`.
 
 The `pr-code-merger` skill accepts a review-result JSON path, a PR/MR link, and a blast-radius assessment path. It assesses blast radius using deterministic facts plus LLM reasoning, then produces `review/blast-radius-report.md` and `review/merge-result.json`. It does not parse HTML to make decisions and never claims a PR was merged unless the host executed and verified the merge.
 

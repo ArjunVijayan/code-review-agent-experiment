@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 from git_context import GitContextError, collect_context, resolve_repository
+from resolve_change_request import ChangeRequestError, resolve
 
 
 INSTRUCTION_NAMES = {"AGENTS.md", "CONTRIBUTING.md", "README.md", "copilot-instructions.md"}
@@ -85,9 +86,13 @@ def main() -> int:
         repository = resolve_repository(args.repository)
         change_request = None
         if args.change_request:
-            if not args.provider_input:
-                raise GitContextError("a PR/MR URL requires --provider-input with normalized base_ref and source_ref metadata")
-            change_request = json.loads(args.provider_input.read_text(encoding="utf-8"))
+            if args.provider_input:
+                change_request = json.loads(args.provider_input.read_text(encoding="utf-8"))
+            else:
+                try:
+                    change_request = resolve(args.change_request)
+                except ChangeRequestError as error:
+                    raise GitContextError(str(error)) from error
             base = args.base or change_request.get("base_ref") or change_request.get("base", "")
             source = args.source or change_request.get("source_ref") or change_request.get("source", "")
             if not base or not source:
