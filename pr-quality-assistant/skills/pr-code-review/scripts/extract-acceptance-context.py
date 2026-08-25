@@ -15,6 +15,31 @@ def read_text(repository: Path, relative_path: str, limit: int = 12000) -> str:
         return ""
 
 
+def repository_role(repository: Path, context: dict) -> dict:
+    candidates = ["README.md", "pyproject.toml", "package.json", "pom.xml", "go.mod", "Cargo.toml"]
+    evidence = []
+    signals = []
+    for relative_path in candidates:
+        content = read_text(repository, relative_path)
+        if content:
+            evidence.append(relative_path)
+            lower_content = content.lower()
+            if "library" in lower_content or "package" in lower_content:
+                signals.append("reusable library or package")
+            if "service" in lower_content or "api" in lower_content or "server" in lower_content:
+                signals.append("service or API")
+            if "plugin" in lower_content or "agent" in lower_content:
+                signals.append("agent/plugin tooling")
+    if not signals:
+        signals.append("repository role not determinable from available metadata")
+    return {
+        "candidates": sorted(set(signals)),
+        "evidence_files": evidence,
+        "confidence": "medium" if evidence else "low",
+        "scope_note": f"Current comparison contains {len(context['change']['files'])} changed files.",
+    }
+
+
 def extract(context: dict, repository: Path, provider_payload: dict | None) -> dict:
     change = context["change"]
     provider_requests = (provider_payload or {}).get("change_requests", [])
@@ -36,6 +61,7 @@ def extract(context: dict, repository: Path, provider_payload: dict | None) -> d
             instruction_evidence.append({"path": item["path"], "scope": item["scope"], "content": content})
     return {
         "principle": "Do not create an acceptance criterion without evidence; mark insufficiently supported behavior as unknown.",
+        "repository_role": repository_role(repository, context),
         "source_priority": [
             "PR description and discussion",
             "linked issue or task",
@@ -57,6 +83,8 @@ def extract(context: dict, repository: Path, provider_payload: dict | None) -> d
             "merge_semantic_duplicates": True,
             "preserve_distinct_observable_behaviors": True,
             "required_fields": ["requirement", "evidence", "verification", "confidence"],
+            "criteria_must_describe_observable_behavior": True,
+            "criteria_must_not_be_implementation_details": True,
         },
     }
 

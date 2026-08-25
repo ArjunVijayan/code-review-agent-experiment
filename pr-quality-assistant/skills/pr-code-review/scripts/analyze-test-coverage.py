@@ -10,6 +10,7 @@ from pathlib import Path
 
 COVERAGE_FILES = {"coverage.xml", "coverage.json", "lcov.info", "jacoco.xml"}
 TEST_COMMAND_KEYS = {"pytest", "jest", "nyc", "test", "coverage", "go test", "dotnet test"}
+UNIT_TEST_MARKERS = ("test_", "_test", ".test.", ".spec.", "unittest")
 
 
 def discover_coverage_files(repository: Path) -> list[str]:
@@ -39,6 +40,7 @@ def analyze(context: dict, repository: Path) -> dict:
     source_files = [item["path"] for item in changed_files if item["status"] not in {"added", "deleted"}]
     changed_tests = context.get("tests", {}).get("changed_tests", [])
     test_files = context.get("tests", {}).get("test_files", [])
+    unit_test_files = [path for path in test_files if any(marker in Path(path).name.lower() for marker in UNIT_TEST_MARKERS)]
     coverage_files = discover_coverage_files(repository)
     manifests = context.get("repository", {}).get("manifests", [])
     return {
@@ -50,8 +52,11 @@ def analyze(context: dict, repository: Path) -> dict:
         },
         "tests": {
             "all_test_files": test_files,
+            "unit_test_files": unit_test_files,
             "changed_test_files": changed_tests,
             "potentially_relevant_tests": [path for path in test_files if any(Path(source).stem in path for source in source_files)],
+            "unit_test_inventory_available": bool(unit_test_files),
+            "unit_test_sufficiency": "requires behavioral assessment; inventory alone is not proof of adequacy",
         },
         "coverage": {
             "measured_report_files": coverage_files,

@@ -30,9 +30,9 @@ If no new requests are returned, preserve the existing insight files and state. 
 ## Phase 3: Evidence Analysis
 
 1. Run `scripts/extract-acceptance-context.py` with the current context and any provider-supplied PR description, comments, threads, reviews, and issue references.
-2. Synthesize `review/acceptance-criteria.md` from that evidence using `references/acceptance-criteria.md`. Include source, evidence, confidence, and verification for every criterion. Merge semantic duplicates but preserve distinct observable behaviors. If intent is not supported, write `Unknown / cannot determine`; never invent a criterion from engineering convention or implementation detail alone.
+2. Synthesize `review/acceptance-criteria.md` from that evidence using `references/acceptance-criteria.md`. If PR comments or requirements are unavailable, understand the repository role from README/manifests and derive only clearly observable behavior supported by changed files, tests, or instructions. Include source, evidence, confidence, and verification for every criterion; then evaluate each as `PASS`, `FAIL`, `UNCERTAIN`, or `NOT_APPLICABLE`. Merge semantic duplicates but preserve distinct observable behaviors. If intent is not supported, write `Unknown / cannot determine`; never invent a criterion from engineering convention or implementation detail alone.
 3. Run `scripts/analyze-test-coverage.py` with the current context. It inventories changed behavior candidates, tests, manifests, test commands, and measured coverage files.
-4. Synthesize `review/code-coverage-report.md` from those facts using `references/coverage-analysis.md`. Analyze behavioral execution paths and meaningful success, boundary, and error scenarios. Distinguish measured coverage from change-based test sufficiency, and never fabricate a percentage or claim a test passed without evidence.
+4. Synthesize `review/code-coverage-report.md` from those facts using `references/coverage-analysis.md`. Determine whether unit tests adequately exercise each changed behavioral path, including meaningful success, boundary, invalid-input, and error scenarios. Distinguish measured coverage from change-based test sufficiency, and never fabricate a percentage or claim a test passed without evidence.
 
 The two Markdown files are evidence packages for a later reviewer, not generic prose. Preserve links to changed paths, test names, manifests, coverage reports, PR IDs, and comments wherever available.
 
@@ -44,7 +44,7 @@ Every gate must be `PASS`, `FAIL`, `UNCERTAIN`, or `NOT_APPLICABLE`. Do not conv
 
 Run `scripts/evaluate-review.py review/review-assessment.json --policy references/review-policy.json` to produce the canonical `review/review-result.json`. The evaluator applies the configurable coverage threshold (default 95), mandatory gate rules, blocking severities, and AI-slop limits. It consolidates duplicate findings across gates. Approval requires all blocking gates to pass and no blocking-severity finding.
 
-Run `scripts/render-review-report.py review/review-result.json` to produce the human-facing `review/review-report.html`. HTML is presentation only; downstream automation must consume `review/review-result.json`.
+Run `scripts/render-review-report.py review/review-result.json` to produce the human-facing `review/review-report.html`. The HTML must show each gate's status and score/evidence, every issue's severity, evidence, and reference link, and the final decision. HTML is presentation only; downstream automation must consume `review/review-result.json`.
 
 The AI-slop gate reports only unnecessary complexity, risk, duplication, maintenance burden, or repository-convention violations. Do not flag code merely because it appears AI-generated.
 
