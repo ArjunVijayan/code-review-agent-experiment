@@ -21,9 +21,10 @@ flowchart TD
     AC --> ACM[review/acceptance-criteria.md]
     CT --> TC[Test and coverage facts]
     TC --> TCM[review/code-coverage-report.md]
-    MD --> RH[Review handoff]
+    MD --> SA[Semantic analysis input]
     ACM --> RH
     TCM --> RH
+    SA --> RH[Semantic review analysis]
     RH --> FR[Final five-gate review]
     FR --> RR[review/review-result.json]
     RR --> HTML[review/review-report.html]

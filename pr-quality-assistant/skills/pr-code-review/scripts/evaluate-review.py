@@ -62,6 +62,11 @@ def gate_status(name: str, gate: dict, policy: dict) -> str:
 
 
 def evaluate(assessment: dict, policy: dict) -> dict:
+
+    print("Evaluating assessment with policy:", policy)
+    print("Gates to be evaluated:", assessment)
+    print("-------")
+
     gates = assessment.get("gates", {})
     evaluated_gates = {}
     for name in GATES:

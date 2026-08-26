@@ -27,6 +27,7 @@ INTERMEDIATE_INPUTS = {
     "current_context_json": ("/tmp/pr-quality-review-context.json", "review/review-context.json"),
     "acceptance_context_json": ("/tmp/acceptance-context.json", "review/acceptance-context.json"),
     "coverage_facts_json": ("/tmp/coverage-facts.json", "review/coverage-facts.json"),
+    "review_analysis_input": ("review/review-analysis-input.json", "/tmp/review-analysis-input.json"),
     "change_requests_json": ("review/change-requests.json",),
 }
 
