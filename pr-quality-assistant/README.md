@@ -26,7 +26,7 @@ When tests are insufficient, test generation runs before acceptance-criteria tra
 
 During the historical phase, the host supplies merged change requests and review feedback to the `repo-intelligence` workflow described in `skills/pr-code-review/references/insight-generation.md`. It deduplicates evidence by change-request ID and comment hash, and updates `pr-insights.json` plus `.github/instructions/insights.instructions.md` when a new reusable rule is found.
 
-The host supplies the change-request provider data through its webhook, scheduled job, or native lifecycle event. Hosts without lifecycle events may invoke discovery manually, but the workflow must verify merge status before writing either output.
+The historical collector identifies GitHub or GitLab from the `origin` remote and fetches merged change requests plus associated feedback using the provider adapter registry. Hosts can add another provider by implementing the same normalized adapter contract. Hosts without API access may provide `review/change-requests.json` directly; the workflow still verifies merge status before writing insights.
 
 ## Compatibility
 
