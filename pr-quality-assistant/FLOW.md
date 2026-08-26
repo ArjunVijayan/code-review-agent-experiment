@@ -1,58 +1,53 @@
-# Agent and Skill Flow
+# Agent Skills Flow
 
 ```mermaid
 flowchart TD
-    subgraph Personas[On-demand persona agents]
-        D[developer-code-review.agent.md]
-        R[pr-quality-report.agent.md]
-        P[pr-quality.agent.md\nCopilot orchestration adapter]
-    end
+    H[Agent Skills-compatible host] --> CR[pr-code-review skill]
+    CR --> V[Validate repository and refs]
+    V --> MB[Calculate merge base]
+    MB --> C[Collect CodeReviewContext]
+    C --> GM[Git metadata]
+    C --> DF[Diff and changed files]
+    C --> CH[Commit history]
+    C --> RS[Repository structure]
+    C --> IT[Instructions and tests]
+    GM --> CT[Context JSON]
+    DF --> CT
+    CH --> CT
+    RS --> CT
+    IT --> CT
+    CT --> MD[review/review-context.md]
+    CT --> AC[Acceptance context facts]
+    AC --> ACM[review/acceptance-criteria.md]
+    CT --> TC[Test and coverage facts]
+    TC --> TCM[review/code-coverage-report.md]
+    MD --> RH[Review handoff]
+    ACM --> RH
+    TCM --> RH
+    RH --> FR[Final five-gate review]
+    FR --> RR[review/review-result.json]
+    RR --> HTML[review/review-report.html]
 
-    I[data/insights.instructions.md]
-    Q[requirement-analysis]
-    B[change-blast-radius]
-    T[test-analysis]
-    S[test-sufficiency]
-    G{Tests sufficient?}
-    TG[test-generation]
-    QR[quality-report]
+    RR --> MR[pr-code-merger skill]
+    MR --> BR[Six-dimension blast-radius assessment]
+    BR --> BRM[review/blast-radius-report.md]
+    BR --> MP[Merge policy]
+    MP --> DEC{Low risk and all gates pass?}
+    DEC -->|yes| AM[auto_merge decision]
+    DEC -->|no| HR[human_review decision]
+    AM --> MERGE[Optional host merge tool]
+    MERGE --> VERIFY[Verify merged state]
+    VERIFY --> MJSON[review/merge-result.json]
+    HR --> MJSON
 
-    D --> I
-    R --> I
-    P --> I
-    D --> Q
-    R --> Q
-    P --> Q
-    Q --> B --> T --> S --> G
-    G -->|yes| QR
-    G -->|no| TG --> QR
+    W[Merged PR webhook or scheduled job] --> RI[Historical intelligence phase]
+    RI --> IG[Review comment extraction and cleansing]
+    IG --> D[Deduplicate by PR ID + comment hash]
+    D --> J[pr-insights.json]
+    D --> I[.github/instructions/insights.instructions.md]
+    I -. loaded by .-> CR
+    J -. detailed provenance .-> CR
 
-    subgraph Intelligence[Merge-triggered repo intelligence]
-        H[Host webhook, scheduled job, or Copilot session-start adapter]
-        RI[repo-intelligence.agent.md]
-        IG[insights-generator]
-        JSON[data/pr-insights.json]
-        INST[data/insights.instructions.md]
-    end
-
-    H -->|merged PR only| RI --> IG
-    IG -->|deduplicate by PR ID + comment hash| JSON
-    IG -->|regenerate shared guidance| INST
-    INST -. loaded by .-> D
-    INST -. loaded by .-> R
-    INST -. loaded by .-> P
-
-    subgraph Shared[Shared workflow references]
-        AP[skills/_shared/analysis-phase.md]
-        AC[skills/_shared/agent-skills-compatibility.md]
-    end
-
-    AP -. defines order .-> Q
-    AP -. defines order .-> B
-    AP -. defines order .-> T
-    AC -. host contract .-> D
-    AC -. host contract .-> R
-    AC -. host contract .-> RI
 ```
 
-The `skills/` directories and `AGENTS.md` are the portable Agent Skills integration surface. `plugin.json`, `agents/*.agent.md`, and `hooks.json` are optional host adapters.
+The portable package surface is `plugin.json` plus the immediate skill directories under `skills/`. The Git-only collector produces review context; hosts decide how to expose skills and deliver merged-PR events.

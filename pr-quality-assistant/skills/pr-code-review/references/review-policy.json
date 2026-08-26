@@ -1,0 +1,28 @@
+{
+  "coverage": {
+    "threshold": 95,
+    "blocking": true
+  },
+  "acceptance_criteria": {
+    "required_pass_rate": 100,
+    "blocking": true
+  },
+  "coding_guidelines": {
+    "required_pass_rate": 100,
+    "blocking": true
+  },
+  "historical_review": {
+    "required_pass_rate": 100,
+    "blocking": true
+  },
+  "ai_slop": {
+    "max_blocking_findings": 0,
+    "max_major_findings": 0,
+    "blocking": true
+  },
+  "blocking_severities": [
+    "BLOCKER",
+    "CRITICAL",
+    "MAJOR"
+  ]
+}

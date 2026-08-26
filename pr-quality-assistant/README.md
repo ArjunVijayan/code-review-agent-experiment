@@ -1,29 +1,37 @@
 # PR Quality Assistant
 
-This package exposes two reusable Agent Skills flows. Start with [AGENTS.md](AGENTS.md); it is the host-neutral entrypoint. The Copilot files provide one optional host adapter; other Agent Skills-compatible agents can discover and invoke the skills directly.
+This package is an Agent Plugins v1.0 package containing two portable Agent Skills. Clients discover them from the fixed `skills/` directory; no custom agent or orchestration layer is required.
 
-See [FLOW.md](FLOW.md) for the complete agent and skill flowchart.
+The `pr-code-review` skill first refreshes incremental historical intelligence, then collects Git-only context for either `{ "base": "main", "source": "dev/bug_fix" }` or a GitHub PR/MR URL. GitHub URLs resolve their refs automatically; other providers can supply normalized `base_ref` and `source_ref` metadata. It creates a structured `CodeReviewContext`, renders evidence packages, evaluates five review gates, and produces `review/review-result.json` plus `review/review-report.html`.
 
-## On-demand persona flow
+The `pr-code-merger` skill accepts a review-result JSON path, a PR/MR link, and a blast-radius assessment path. It assesses blast radius using deterministic facts plus LLM reasoning, then produces `review/blast-radius-report.md` and `review/merge-result.json`. It does not parse HTML to make decisions and never claims a PR was merged unless the host executed and verified the merge.
 
-The developer review and PR quality report personas load repository insights, then share one analysis sequence:
+See [FLOW.md](FLOW.md) for the complete skill flowchart.
 
-`requirements -> change and blast-radius -> test-analysis -> test-sufficiency`
+## On-demand review flow
+
+The `pr-code-review` skill provides the context handoff for developer-facing pre-PR review and PR-facing quality reporting:
+
+`historical intelligence -> current context -> acceptance + coverage evidence -> five-gate evaluation -> JSON result + HTML report`
+
+The merger flow is:
+
+`review-result.json + change summary -> blast-radius assessment -> policy gates -> merge-result.json`
+
+Each review run is archived under `.code-review/runs/<run-id>/` with a manifest and hashes for provider discovery, intermediate JSON inputs, current context/diff, acceptance criteria, coverage report, historical insights, final result, and HTML report. Missing inputs are recorded, while `.env` and credentials are excluded. This archive is the traceability source; `review/` is the working output directory.
 
 When tests are insufficient, test generation runs before acceptance-criteria traceability and the final quality report.
 
 ## Merge-triggered intelligence flow
 
-On a merged PR event, the host invokes `repo-intelligence`. That agent fetches and cleanses review comments, then calls `insights-generator`, which deduplicates evidence by PR ID and comment hash and updates `data/pr-insights.json` plus `data/insights.instructions.md` when a new reusable rule is found.
+During the historical phase, the host supplies merged change requests and review feedback to the `repo-intelligence` workflow described in `skills/pr-code-review/references/insight-generation.md`. It deduplicates evidence by change-request ID and comment hash, and updates `pr-insights.json` plus `.github/instructions/insights.instructions.md` when a new reusable rule is found.
 
-For Copilot, the valid session-start hook prompts `repo-intelligence` to check for newly merged PRs because the current Copilot hooks reference has no PR-merged event. Other compatible hosts should connect their native PR webhook or scheduled automation to the same agent. The agent's merge-status check keeps any adapter from recording unmerged PR feedback.
+The historical collector identifies GitHub or GitLab from the `origin` remote and fetches merged change requests plus associated feedback using the provider adapter registry. Hosts can add another provider by implementing the same normalized adapter contract. Hosts without API access may provide `review/change-requests.json` directly; the workflow still verifies merge status before writing insights.
 
 ## Compatibility
 
-Any host implementing the Agent Skills specification can use `AGENTS.md` and the directories under `skills/`; see `skills/_shared/agent-skills-compatibility.md` for the host contract. The Markdown persona agents, `plugin.json`, and `hooks.json` are optional adapters, while `data/` is the shared persistence format.
+Any Agent Plugins-compatible client can load this package. An Agent Skills-compatible client can consume the `pr-code-review/SKILL.md` file directly; the historical workflow is an internal phase, not a second exposed skill. The open standard controls package and skill discovery; each host controls user experience and event delivery.
 
-## Documentation consulted
+## Standard
 
-- [GitHub Copilot plugins](https://docs.github.com/en/copilot/concepts/agents/plugins) for the requested plugin conventions (the page was unavailable during validation).
-- [GitHub Copilot hooks reference](https://docs.github.com/en/copilot/reference/hooks-configuration), especially **Hook configuration format** and **Hook events**.
-- [Using hooks with GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/use-hooks) for the `version: 1` and `sessionStart` configuration examples.
+This package follows [Agent Plugins Specification 1.0.0](https://github.com/agentplugins/agent-plugins-spec/blob/main/spec/1.0.0.md) and [Agent Skills Specification](https://agentskills.io/specification). The plugin manifest uses the canonical Agent Plugins schema; skills are discovered from `skills/<name>/SKILL.md`.

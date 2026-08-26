@@ -1,0 +1,24 @@
+{
+  "low": {
+    "auto_merge": true,
+    "require_human": false
+  },
+  "medium": {
+    "auto_merge": false,
+    "require_human": true
+  },
+  "high": {
+    "auto_merge": false,
+    "require_human": true
+  },
+  "critical": {
+    "auto_merge": false,
+    "require_human": true
+  },
+  "require_all_review_gates_pass": true,
+  "blocking_severities": [
+    "BLOCKER",
+    "CRITICAL",
+    "MAJOR"
+  ]
+}
