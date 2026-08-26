@@ -42,7 +42,10 @@ def repository_role(repository: Path, context: dict) -> dict:
 
 def extract(context: dict, repository: Path, provider_payload: dict | None) -> dict:
     change = context["change"]
+    current_request = context.get("change_request")
     provider_requests = (provider_payload or {}).get("change_requests", [])
+    if not provider_requests and current_request:
+        provider_requests = [current_request]
     request_evidence = []
     for request in provider_requests:
         request_evidence.append(
@@ -52,6 +55,9 @@ def extract(context: dict, repository: Path, provider_payload: dict | None) -> d
                 "description": request.get("description", ""),
                 "comments": request.get("comments", []),
                 "reviews": request.get("reviews", []),
+                "discussion_comments": request.get("discussion_comments", []),
+                "commits": request.get("commits", []),
+                "changed_files": request.get("changed_files", []),
             }
         )
     instruction_evidence = []

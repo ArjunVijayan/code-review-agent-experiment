@@ -6,12 +6,34 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode, urlparse
 from urllib.request import Request, urlopen
 
-from dotenv import load_dotenv
-load_dotenv()
+def load_local_environment() -> None:
+    """Load simple KEY=value entries without overriding exported variables."""
+    candidates = [Path.cwd() / ".env", Path(__file__).resolve().parents[5] / ".env"]
+    for path in candidates:
+        if not path.is_file():
+            continue
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except OSError:
+            continue
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key and key not in os.environ:
+                os.environ[key] = value
+        return
+
+
+load_local_environment()
 
 
 @dataclass(frozen=True)
@@ -23,6 +45,23 @@ class ProviderRepository:
 
 class ProviderError(RuntimeError):
     """Raised when a provider cannot be detected or queried."""
+
+
+def _github_identity(url: str) -> tuple[str, str, str] | None:
+    parts = urlparse(url).path.strip("/").split("/")
+    if len(parts) >= 4 and parts[2] == "pull" and parts[3].isdigit():
+        return parts[0], parts[1], parts[3]
+    return None
+
+
+def _gitlab_identity(url: str) -> tuple[str, str, str] | None:
+    parsed = urlparse(url)
+    parts = [part for part in parsed.path.strip("/").split("/") if part]
+    if "-" in parts and "merge_requests" in parts and parts[-1].isdigit():
+        marker = parts.index("-")
+        project_path = "/".join(parts[:marker])
+        return project_path, project_path, parts[-1]
+    return None
 
 
 def detect_provider(remote: str) -> ProviderRepository | None:
@@ -132,6 +171,58 @@ def _gitlab_requests(repository: ProviderRepository, base_ref: str, limit: int) 
             break
         page += 1
     return requests
+
+
+def fetch_change_request(remote: str, url: str) -> dict:
+    """Fetch one PR/MR and all evidence needed for current acceptance analysis."""
+    repository = detect_provider(remote)
+    if repository is None:
+        raise ProviderError("unsupported VCS provider; add an adapter for this remote host")
+    if repository.provider == "github":
+        identity = _github_identity(url)
+        if identity is None:
+            raise ProviderError("invalid GitHub pull-request URL")
+        owner, name, number = identity
+        root = f"https://api.github.com/repos/{owner}/{name}"
+        pull = _get_json(f"{root}/pulls/{number}", "github")
+        commits = _get_json(f"{root}/pulls/{number}/commits?per_page=100", "github")
+        files = _get_json(f"{root}/pulls/{number}/files?per_page=100", "github")
+        comments = _get_json(f"{root}/pulls/{number}/comments?per_page=100", "github")
+        reviews = _get_json(f"{root}/pulls/{number}/reviews?per_page=100", "github")
+        discussion = _get_json(f"{root.replace('/repos/', '/repos/')}/issues/{number}/comments?per_page=100", "github")
+        return {
+            "provider": "github", "id": number, "url": url,
+            "base_ref": pull["base"]["ref"], "source_ref": pull["head"]["ref"],
+            "base_sha": pull["base"]["sha"], "source_sha": pull["head"]["sha"],
+            "merged": pull.get("merged_at") is not None, "title": pull.get("title", ""),
+            "description": pull.get("body") or "", "comments": comments if isinstance(comments, list) else [],
+            "reviews": reviews if isinstance(reviews, list) else [],
+            "discussion_comments": discussion if isinstance(discussion, list) else [],
+            "commits": commits if isinstance(commits, list) else [],
+            "changed_files": files if isinstance(files, list) else [],
+        }
+    if repository.provider == "gitlab":
+        identity = _gitlab_identity(url)
+        if identity is None:
+            raise ProviderError("invalid GitLab merge-request URL")
+        project_path, _, iid = identity
+        project = quote(project_path, safe="")
+        root = f"https://gitlab.com/api/v4/projects/{project}/merge_requests/{iid}"
+        merge_request = _get_json(root, "gitlab")
+        notes = _get_json(f"{root}/notes?per_page=100", "gitlab")
+        commits = _get_json(f"{root}/commits?per_page=100", "gitlab")
+        changes = _get_json(f"{root}/changes", "gitlab")
+        return {
+            "provider": "gitlab", "id": iid, "url": url,
+            "base_ref": merge_request["target_branch"], "source_ref": merge_request["source_branch"],
+            "base_sha": merge_request.get("diff_refs", {}).get("base_sha", ""),
+            "source_sha": merge_request.get("sha", ""), "merged": merge_request.get("state") == "merged",
+            "title": merge_request.get("title", ""), "description": merge_request.get("description") or "",
+            "comments": notes if isinstance(notes, list) else [], "reviews": [], "discussion_comments": [],
+            "commits": commits if isinstance(commits, list) else [],
+            "changed_files": changes.get("changes", []) if isinstance(changes, dict) else [],
+        }
+    raise ProviderError(f"no adapter registered for provider {repository.provider}")
 
 
 def fetch_merged_change_requests(remote: str, base_ref: str, limit: int) -> dict:

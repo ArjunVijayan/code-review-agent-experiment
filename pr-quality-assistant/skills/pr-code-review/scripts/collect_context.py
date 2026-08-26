@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -90,7 +91,7 @@ def main() -> int:
                 change_request = json.loads(args.provider_input.read_text(encoding="utf-8"))
             else:
                 try:
-                    change_request = resolve(args.change_request)
+                    change_request = resolve(args.change_request, subprocess.check_output(["git", "remote", "get-url", "origin"], text=True).strip())
                 except ChangeRequestError as error:
                     raise GitContextError(str(error)) from error
             base = args.base or change_request.get("base_ref") or change_request.get("base", "")

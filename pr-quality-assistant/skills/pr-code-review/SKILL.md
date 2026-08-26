@@ -31,7 +31,7 @@ If no new requests are returned, preserve the existing insight files and state. 
 
 ## Phase 3: Evidence Analysis
 
-1. Run `scripts/extract-acceptance-context.py` with the current context and any provider-supplied PR description, comments, threads, reviews, and issue references.
+1. Run `scripts/extract-acceptance-context.py` with the current context and any provider-supplied PR/MR description, comments, threads, reviews, commits, changed files, and issue references. For a current PR/MR URL, the provider adapter fetches this evidence and stores it in `change_request`; use it automatically even without a second provider payload.
 2. Synthesize `review/acceptance-criteria.md` from that evidence using `references/acceptance-criteria.md`. If PR comments or requirements are unavailable, understand the repository role from README/manifests and derive only clearly observable behavior supported by changed files, tests, or instructions. Include source, evidence, confidence, and verification for every criterion; then evaluate each as `PASS`, `FAIL`, `UNCERTAIN`, or `NOT_APPLICABLE`. Merge semantic duplicates but preserve distinct observable behaviors. If intent is not supported, write `Unknown / cannot determine`; never invent a criterion from engineering convention or implementation detail alone.
 3. Run `scripts/analyze-test-coverage.py` with the current context. It inventories changed behavior candidates, tests, manifests, test commands, and measured coverage files.
 4. Synthesize `review/code-coverage-report.md` from those facts using `references/coverage-analysis.md`. Determine whether unit tests adequately exercise each changed behavioral path, including meaningful success, boundary, invalid-input, and error scenarios. Distinguish measured coverage from change-based test sufficiency, and never fabricate a percentage or claim a test passed without evidence.
@@ -64,7 +64,7 @@ Do not make approval decisions.
 
 The client or launcher maps its command syntax to the logical request; the skill does not depend on a specific CLI. It may provide direct refs, a GitHub PR URL, or another provider URL plus normalized metadata. Run `scripts/collect_context.py` to produce the current-change context JSON, then run `scripts/generate_context.py` with that JSON to render the Markdown artifact. Run `scripts/extract-acceptance-context.py` and `scripts/analyze-test-coverage.py` to produce the evidence inputs for the two additional artifacts.
 
-The scripts require Python 3.9 or newer and a Git repository. They use Git only for repository facts and do not call GitHub, GitLab, or any remote API. Historical extraction and semantic deduplication remain model-driven; Python only validates, selects, persists, and archives state.
+The Git context scripts require Python 3.9 or newer and a Git repository. Provider adapters may call the detected VCS API for PR/MR metadata and review evidence; Git-only collection itself does not call a hosting API. Historical extraction and semantic deduplication remain model-driven; Python only validates, selects, persists, and archives state.
 
 # Non-goals
 
