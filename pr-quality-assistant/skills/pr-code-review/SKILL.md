@@ -1,6 +1,6 @@
 ---
 name: pr-code-review
-description: Builds incremental historical review intelligence, collects Git repository context for a base/source comparison, and produces a traceable review-context.md artifact for later code review. Use with logical base and source refs for pre-PR or pull-request review.
+description: Perform a code review by building incremental historical review intelligence, collecting Git repository context for a base/source comparison, and producing a traceable review-context.md artifact for approver consumption. Use with logical base and source refs for pre-PR or pull-request review.
 ---
 
 # PR Code Review
@@ -38,23 +38,23 @@ If no new requests are returned, preserve the existing insight files and state. 
 
 The two Markdown files are evidence packages for a later reviewer, not generic prose. Preserve links to changed paths, test names, manifests, coverage reports, PR IDs, and comments wherever available.
 
-## Phase 4: Final Review Assessment
+## Phase 4: Final Code Review and Report
 
-The final reviewer consumes `.github/instructions/insights.instructions.md`, `pr-insights.json`, `review/review-context.md`, `review/acceptance-criteria.md`, `review/code-coverage-report.md`, and the relevant source code. Evaluate exactly five gates: coverage, acceptance criteria, coding guidelines, historical compliance, and AI-slop. Use `references/final-review.md` to produce `review/review-assessment.json`.
+The skill performs the final evidence-based code review. Consume `.github/instructions/insights.instructions.md`, `pr-insights.json`, `review/review-context.md`, `review/acceptance-criteria.md`, `review/code-coverage-report.md`, and the relevant source code. Follow `references/generic-review-standards.md`. Evaluate exactly five gates: coverage, acceptance criteria, coding guidelines, historical compliance, and AI-slop; these collectively cover architecture, security, regression/blast radius, and build/test status when evidence exists. Use `references/final-review.md` to produce `review/review-assessment.json`.
 
-Every gate must be `PASS`, `FAIL`, `UNCERTAIN`, `UNAVAILABLE`, or `NOT_APPLICABLE`. Mark a gate `UNAVAILABLE` when its required evidence or assessment was not supplied; unavailable gates block approval and are never converted into a pass. Findings must include severity from `BLOCKER`, `CRITICAL`, `MAJOR`, `MINOR`, or `INFO`, plus issue, impact, evidence, reference, recommendation, and a stable fingerprint when the same underlying issue appears in multiple gates.
+Every gate must be `PASS`, `FAIL`, `WARNING`, `UNCERTAIN`, `UNAVAILABLE`, or `NOT_APPLICABLE`. Mark a gate `UNAVAILABLE` when its required evidence or assessment was not supplied; unavailable gates block approval and are never converted into a pass. Findings must include category, severity, status, blocking flag, title/summary, evidence, expected behavior, actual behavior, impact, recommendation, confidence, and a stable fingerprint when the same root cause appears in multiple gates. Review only current-PR changes and do not fabricate references or tool results.
 
 Run `scripts/ensure-review-assessment.py --input review/review-assessment.json --output review/review-assessment.json` when an assessment exists, or omit `--input` to create an unavailable assessment. Then run `scripts/evaluate-review.py review/review-assessment.json --policy references/review-policy.json` to produce the canonical `review/review-result.json`. The evaluator applies the configurable coverage threshold (default 95), mandatory gate rules, unavailable-gate blocking, blocking severities, and AI-slop limits. It consolidates duplicate findings across gates. Approval requires all blocking gates to pass and no blocking-severity finding.
 
 Always run `scripts/render-review-report.py review/review-result.json` to produce the human-facing `review/review-report.html`, including when gates are unavailable. The assessment should supply metrics, change summaries, and actionable recommendations; the HTML must show each gate's status and score/evidence, evidence-package links, change summaries, metrics, every issue's severity/impact/evidence/reference, recommendations, and the final decision. HTML is presentation only; downstream automation must consume `review/review-result.json`.
 
-The AI-slop gate reports only unnecessary complexity, risk, duplication, maintenance burden, or repository-convention violations. Do not flag code merely because it appears AI-generated.
+The AI-slop gate reports only unnecessary complexity, risk, duplication, maintenance burden, or repository-convention violations. Do not flag code merely because it appears AI-generated. Filter AI-derived findings below the configured confidence threshold unless they have deterministic supporting evidence.
 
 ## Phase 5: Review Handoff
 
 Run `scripts/archive-review-run.py --base <base> --source <source>` after the final artifacts are produced. It snapshots all collected inputs and intermediate results, including provider discovery, current context JSON, acceptance-context JSON, coverage facts, change-request input, current diff/context, acceptance criteria, code-coverage report, historical insights, instructions, assessment, result, and HTML report under `.code-review/runs/<run-id>/`, with SHA-256 hashes and base/source commits in `manifest.json`. Missing files are recorded in the manifest so monitoring can distinguish unavailable evidence from an empty file. Secrets and `.env` are never archived.
 
-The skill stops after archiving the structured result and HTML report. A merger or other downstream agent should consume `review/review-result.json`, not parse HTML or reinterpret an LLM response. This skill does not approve or reject changes on behalf of a host; it records the policy evaluation and decision.
+The skill stops after archiving the structured result and HTML report. `review/review-result.json` and `review/review-report.html` are the auditable outputs used by developers, reviewers, and downstream approval or merge tooling. The skill does not execute approval or merge actions; it records the readiness evaluation and recommendation.
 
 Do not perform code review at this stage.
 
@@ -69,9 +69,9 @@ The Git context scripts require Python 3.9 or newer and a Git repository. Provid
 # Non-goals
 
 The skill does not:
-- Approve or reject changes on behalf of a host.
-- Perform code review after the final artifacts are produced.
-- Perform any actions that would alter the repository state directly.
+- Execute approval or merge actions on behalf of a host.
+- Replace the structured review result with an HTML-only decision input.
+- Perform any actions that would alter the source code under review.
 - Use any other branch or commit than the explicitly supplied base/source refs.
-- Fixing or improving the quality of the code under review; it only evaluates and reports on it.
+- Fix or improve the code under review; it evaluates and reports on it.
 - Make decisions outside the scope of the structured review process.

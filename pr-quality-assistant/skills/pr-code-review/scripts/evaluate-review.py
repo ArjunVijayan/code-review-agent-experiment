@@ -70,10 +70,16 @@ def evaluate(assessment: dict, policy: dict) -> dict:
         evaluated_gates[name] = source
     findings = consolidate_findings(evaluated_gates)
     blocking_severities = set(policy.get("blocking_severities", []))
-    blocking_findings = [item for item in findings if str(item.get("severity", "INFO")).upper() in blocking_severities]
+    for item in findings:
+        item["blocking"] = str(item.get("severity", "INFO")).upper() in blocking_severities
+    blocking_findings = [item for item in findings if item["blocking"]]
     gate_failure = any(gate["status"] in {"FAIL", "UNCERTAIN", "UNAVAILABLE"} and policy[name].get("blocking", False) for name, gate in evaluated_gates.items())
+    has_unavailable = any(gate["status"] == "UNAVAILABLE" for gate in evaluated_gates.values())
+    has_warning = any(gate["status"] == "WARNING" for gate in evaluated_gates.values()) or any(not item["blocking"] for item in findings)
+    decision = "CANNOT_DETERMINE" if has_unavailable else "NOT_READY_TO_MERGE" if gate_failure or blocking_findings else "READY_WITH_WARNINGS" if has_warning else "READY_TO_MERGE"
     return {
         "status": "FAILED" if gate_failure or blocking_findings else "APPROVED",
+        "decision": decision,
         "pull_request": assessment.get("pull_request", {}),
         "gates": evaluated_gates,
         "metrics": assessment.get("metrics", {}),

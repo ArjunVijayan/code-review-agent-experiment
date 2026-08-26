@@ -23,6 +23,8 @@ Any gate finding must include `id`, `gate`, `severity`, `issue`, `impact`, `evid
 
 The assessment should also include `metrics` (for example, changed files, changed behavioral areas, test scenarios covered/missing, measured coverage when available, and applicable historical rules), `change_summary[]` entries with `requirement`, `files`, `behavior`, and `tests`, and `recommendations[]` entries with priority, description, evidence, and reference. Recommendations must explain what to change, why it matters, and where to change it; generic advice without evidence is not sufficient.
 
+Use the generic review standards reference for scope, false-positive filtering, confidence, and decision vocabulary. A report may contain `WARNING` or `NOT_VERIFIABLE` findings, but only evidence-backed findings with clear impact and a blocking severity may block approval.
+
 ## Assessment Input
 
 ```json
@@ -47,4 +49,4 @@ The assessment should also include `metrics` (for example, changed files, change
 }
 ```
 
-Statuses supplied by the reviewer are validated against the policy. `FAIL`, `UNCERTAIN`, and `UNAVAILABLE` never become `PASS`; missing gates are normalized to `UNAVAILABLE`. Overall approval requires every blocking gate to pass and no blocking-severity finding. The final result is structured first; HTML is presentation only and is always generated, including failed or unavailable results.
+Statuses supplied by the reviewer are validated against the policy. `FAIL`, `UNCERTAIN`, and `UNAVAILABLE` never become `PASS`; missing gates are normalized to `UNAVAILABLE`. Overall approval requires every blocking gate to pass and no blocking-severity finding. The evaluator retains backward-compatible `status` values and adds `decision`: `READY_TO_MERGE`, `READY_WITH_WARNINGS`, `NOT_READY_TO_MERGE`, or `CANNOT_DETERMINE`. The final result is structured first; HTML is presentation only and is always generated, including failed or unavailable results.
