@@ -46,7 +46,7 @@ Every gate must be `PASS`, `FAIL`, `UNCERTAIN`, `UNAVAILABLE`, or `NOT_APPLICABL
 
 Run `scripts/ensure-review-assessment.py --input review/review-assessment.json --output review/review-assessment.json` when an assessment exists, or omit `--input` to create an unavailable assessment. Then run `scripts/evaluate-review.py review/review-assessment.json --policy references/review-policy.json` to produce the canonical `review/review-result.json`. The evaluator applies the configurable coverage threshold (default 95), mandatory gate rules, unavailable-gate blocking, blocking severities, and AI-slop limits. It consolidates duplicate findings across gates. Approval requires all blocking gates to pass and no blocking-severity finding.
 
-Always run `scripts/render-review-report.py review/review-result.json` to produce the human-facing `review/review-report.html`, including when gates are unavailable. The HTML must show each gate's status and score/evidence, every issue's severity, evidence, and reference link, and the final decision. HTML is presentation only; downstream automation must consume `review/review-result.json`.
+Always run `scripts/render-review-report.py review/review-result.json` to produce the human-facing `review/review-report.html`, including when gates are unavailable. The assessment should supply metrics, change summaries, and actionable recommendations; the HTML must show each gate's status and score/evidence, evidence-package links, change summaries, metrics, every issue's severity/impact/evidence/reference, recommendations, and the final decision. HTML is presentation only; downstream automation must consume `review/review-result.json`.
 
 The AI-slop gate reports only unnecessary complexity, risk, duplication, maintenance burden, or repository-convention violations. Do not flag code merely because it appears AI-generated.
 
@@ -73,4 +73,5 @@ The skill does not:
 - Perform code review after the final artifacts are produced.
 - Perform any actions that would alter the repository state directly.
 - Use any other branch or commit than the explicitly supplied base/source refs.
+- Fixing or improving the quality of the code under review; it only evaluates and reports on it.
 - Make decisions outside the scope of the structured review process.

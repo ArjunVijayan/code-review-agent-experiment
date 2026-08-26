@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -13,7 +15,16 @@ from urllib.request import Request, urlopen
 
 def load_local_environment() -> None:
     """Load simple KEY=value entries without overriding exported variables."""
-    candidates = [Path.cwd() / ".env", Path(__file__).resolve().parents[5] / ".env"]
+    script_path = Path(__file__).resolve()
+    candidates = [Path.cwd() / ".env", *(parent / ".env" for parent in script_path.parents)]
+    git_root = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if git_root.returncode == 0 and git_root.stdout.strip():
+        candidates.insert(0, Path(git_root.stdout.strip()) / ".env")
     for path in candidates:
         if not path.is_file():
             continue
@@ -83,7 +94,7 @@ def _get_json(url: str, provider: str) -> object:
     token_name = "GITHUB_TOKEN" if provider == "github" else "GITLAB_TOKEN"
     token = os.environ.get(token_name) or os.environ.get("VCS_TOKEN")
 
-    print(f"Fetching JSON from URL: {url} with provider: {provider}, token available: {token is not None}")
+    print(f"Fetching JSON from URL: {url} with provider: {provider}, token available: {token is not None}", file=sys.stderr)
     if token:
         headers["Authorization"] = f"Bearer {token}"
         if provider == "gitlab":
@@ -93,14 +104,14 @@ def _get_json(url: str, provider: str) -> object:
             return json.load(response)
     except HTTPError as error:
         if error.code in {401, 403}:
-            print(f"{provider} rejected the request with HTTP {error.code}")
+            print(f"{provider} rejected the request with HTTP {error.code}", file=sys.stderr)
             raise ProviderError(f"{provider} rejected the request; set {token_name} or VCS_TOKEN") from error
         if error.code == 404:
-            print(f"{provider} repository or change-request data not found (HTTP 404)")
+            print(f"{provider} repository or change-request data not found (HTTP 404)", file=sys.stderr)
             raise ProviderError(f"{provider} repository or change-request data was not found or is not accessible") from error
         raise ProviderError(f"{provider} API request failed with HTTP {error.code}") from error
     except URLError as error:
-        print(f"Failed to reach {provider}: {error.reason}")
+        print(f"Failed to reach {provider}: {error.reason}", file=sys.stderr)
         raise ProviderError(f"unable to reach {provider}: {error.reason}") from error
     except json.JSONDecodeError as error:
         raise ProviderError(f"{provider} returned invalid JSON") from error
@@ -230,10 +241,10 @@ def fetch_merged_change_requests(remote: str, base_ref: str, limit: int) -> dict
     if repository is None:
         raise ProviderError("unsupported VCS provider; add an adapter for this remote host")
     if repository.provider == "github":
-        print(f"Fetching GitHub requests for repository: {repository.namespace}/{repository.name}, base_ref: {base_ref}, limit: {limit}")
+        print(f"Fetching GitHub requests for repository: {repository.namespace}/{repository.name}, base_ref: {base_ref}, limit: {limit}", file=sys.stderr)
         requests = _github_requests(repository, base_ref, limit)
     elif repository.provider == "gitlab":
-        print(f"Fetching GitLab requests for repository: {repository.namespace}/{repository.name}, base_ref: {base_ref}, limit: {limit}")
+        print(f"Fetching GitLab requests for repository: {repository.namespace}/{repository.name}, base_ref: {base_ref}, limit: {limit}", file=sys.stderr)
         requests = _gitlab_requests(repository, base_ref, limit)
     else:
         raise ProviderError(f"no adapter registered for provider {repository.provider}")

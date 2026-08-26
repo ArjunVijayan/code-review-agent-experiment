@@ -19,7 +19,9 @@ The reviewer first produces `review/review-assessment.json` using the contract b
 4. **Historical compliance**: identify whether the current change reintroduces a historical defect pattern, with explicit historical and current evidence.
 5. **AI-slop**: report only unnecessary complexity, risk, duplication, maintenance burden, or convention violations. Never flag code merely because it appears AI-generated.
 
-Any gate finding must include `id`, `gate`, `severity`, `issue`, `impact`, `evidence`, `reference`, and `recommendation`. A finding may be referenced by multiple gates, but duplicate underlying issues must share one `fingerprint` and be consolidated by the evaluator.
+Any gate finding must include `id`, `gate`, `severity`, `issue`, `impact`, `evidence`, `reference`, and `recommendation`. The evidence must identify the exact file, line/range, test, artifact section, or provider record where possible. A finding may be referenced by multiple gates, but duplicate underlying issues must share one `fingerprint` and be consolidated by the evaluator.
+
+The assessment should also include `metrics` (for example, changed files, changed behavioral areas, test scenarios covered/missing, measured coverage when available, and applicable historical rules), `change_summary[]` entries with `requirement`, `files`, `behavior`, and `tests`, and `recommendations[]` entries with priority, description, evidence, and reference. Recommendations must explain what to change, why it matters, and where to change it; generic advice without evidence is not sufficient.
 
 ## Assessment Input
 
@@ -32,7 +34,16 @@ Any gate finding must include `id`, `gate`, `severity`, `issue`, `impact`, `evid
     "coding_guidelines": { "status": "PASS", "passed": 10, "failed": 0, "findings": [] },
     "historical_review": { "status": "PASS", "passed": 4, "failed": 0, "findings": [] },
     "ai_slop": { "status": "PASS", "blocking_findings": 0, "major_findings": 0, "findings": [] }
-  }
+  },
+  "metrics": {
+    "changed_files": 8,
+    "behavioral_areas": 4,
+    "unit_test_scenarios_covered": 20,
+    "unit_test_scenarios_missing": 1,
+    "measured_coverage": "not available"
+  },
+  "change_summary": [],
+  "recommendations": []
 }
 ```
 

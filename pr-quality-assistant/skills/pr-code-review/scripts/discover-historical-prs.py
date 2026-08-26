@@ -69,8 +69,8 @@ def main() -> int:
             remote = remote_url(root)
             provider = detect_provider(remote) if remote else None
 
-            print(f"Detected provider: {provider}")
-            print(f"Remote URL: {remote}")
+            print(f"Detected provider: {provider}", file=sys.stderr)
+            print(f"Remote URL: {remote}", file=sys.stderr)
 
             if provider is None:
                 payload = {}
