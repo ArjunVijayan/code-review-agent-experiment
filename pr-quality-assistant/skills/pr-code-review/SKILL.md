@@ -65,3 +65,12 @@ Do not make approval decisions.
 The client or launcher maps its command syntax to the logical request; the skill does not depend on a specific CLI. It may provide direct refs, a GitHub PR URL, or another provider URL plus normalized metadata. Run `scripts/collect_context.py` to produce the current-change context JSON, then run `scripts/generate_context.py` with that JSON to render the Markdown artifact. Run `scripts/extract-acceptance-context.py` and `scripts/analyze-test-coverage.py` to produce the evidence inputs for the two additional artifacts.
 
 The scripts require Python 3.9 or newer and a Git repository. They use Git only for repository facts and do not call GitHub, GitLab, or any remote API. Historical extraction and semantic deduplication remain model-driven; Python only validates, selects, persists, and archives state.
+
+# Non-goals
+
+The skill does not:
+- Approve or reject changes on behalf of a host.
+- Perform code review after the final artifacts are produced.
+- Perform any actions that would alter the repository state directly.
+- Use any other branch or commit than the explicitly supplied base/source refs.
+- Make decisions outside the scope of the structured review process.
