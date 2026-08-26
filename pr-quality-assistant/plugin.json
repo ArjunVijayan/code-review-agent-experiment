@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "pr-quality-assistant",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Portable Agent Skills for pull-request review, test sufficiency, quality reporting, and repository intelligence.",
   "author": {
     "name": "ps-health"
