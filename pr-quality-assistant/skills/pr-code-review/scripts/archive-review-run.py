@@ -22,6 +22,13 @@ ARTIFACTS = {
     "historical_insights": "pr-insights.json",
     "insights_instructions": ".github/instructions/insights.instructions.md",
 }
+INTERMEDIATE_INPUTS = {
+    "historical_discovery": ("/tmp/discovery.json", "review/discovery.json"),
+    "current_context_json": ("/tmp/pr-quality-review-context.json", "review/review-context.json"),
+    "acceptance_context_json": ("/tmp/acceptance-context.json", "review/acceptance-context.json"),
+    "coverage_facts_json": ("/tmp/coverage-facts.json", "review/coverage-facts.json"),
+    "change_requests_json": ("review/change-requests.json",),
+}
 
 
 def git_value(repository: Path, *args: str) -> str:
@@ -35,6 +42,7 @@ def archive(repository: Path, base: str, source: str, run_id: str | None) -> Pat
     destination = repository / ".code-review" / "runs" / identifier
     destination.mkdir(parents=True, exist_ok=False)
     copied = {}
+    copied_inputs = {}
     missing = []
     for name, relative in ARTIFACTS.items():
         source_path = repository / relative
@@ -49,6 +57,20 @@ def archive(repository: Path, base: str, source: str, run_id: str | None) -> Pat
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source_path, target)
         copied[name] = {"path": relative, "sha256": hashlib.sha256(source_path.read_bytes()).hexdigest()}
+    missing_inputs = []
+    for name, candidates in INTERMEDIATE_INPUTS.items():
+        source_path = next((repository / candidate for candidate in candidates if (repository / candidate).is_file()), None)
+        if source_path is None:
+            absolute_candidates = [Path(candidate) for candidate in candidates if candidate.startswith("/")]
+            source_path = next((candidate for candidate in absolute_candidates if candidate.is_file()), None)
+        if source_path is None:
+            missing_inputs.append(list(candidates))
+            continue
+        relative = source_path.relative_to(repository).as_posix() if source_path.is_relative_to(repository) else f"inputs/{source_path.name}"
+        target = destination / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source_path, target)
+        copied_inputs[name] = {"path": relative, "sha256": hashlib.sha256(source_path.read_bytes()).hexdigest()}
     manifest = {
         "run_id": identifier,
         "created_at": timestamp.isoformat().replace("+00:00", "Z"),
@@ -59,6 +81,9 @@ def archive(repository: Path, base: str, source: str, run_id: str | None) -> Pat
         "base_commit": git_value(repository, "rev-parse", base),
         "copied_artifacts": copied,
         "missing_artifacts": missing,
+        "copied_intermediate_inputs": copied_inputs,
+        "missing_intermediate_inputs": missing_inputs,
+        "secrets_excluded": [".env", "GITHUB_TOKEN", "GH_TOKEN", "GITLAB_TOKEN", "VCS_TOKEN"],
     }
     (destination / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     return destination

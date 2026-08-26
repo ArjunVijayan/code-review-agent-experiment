@@ -52,7 +52,7 @@ The AI-slop gate reports only unnecessary complexity, risk, duplication, mainten
 
 ## Phase 5: Review Handoff
 
-Run `scripts/archive-review-run.py --base <base> --source <source>` after the final artifacts are produced. It snapshots the current diff/context, acceptance criteria, code-coverage report, historical insights, instructions, assessment, result, and HTML report under `.code-review/runs/<run-id>/`, with SHA-256 hashes and base/source commits in `manifest.json`. Missing artifacts are recorded in the manifest so monitoring can distinguish unavailable evidence from an empty file.
+Run `scripts/archive-review-run.py --base <base> --source <source>` after the final artifacts are produced. It snapshots all collected inputs and intermediate results, including provider discovery, current context JSON, acceptance-context JSON, coverage facts, change-request input, current diff/context, acceptance criteria, code-coverage report, historical insights, instructions, assessment, result, and HTML report under `.code-review/runs/<run-id>/`, with SHA-256 hashes and base/source commits in `manifest.json`. Missing files are recorded in the manifest so monitoring can distinguish unavailable evidence from an empty file. Secrets and `.env` are never archived.
 
 The skill stops after archiving the structured result and HTML report. A merger or other downstream agent should consume `review/review-result.json`, not parse HTML or reinterpret an LLM response. This skill does not approve or reject changes on behalf of a host; it records the policy evaluation and decision.
 

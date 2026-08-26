@@ -16,15 +16,28 @@ REQUIRED_EVIDENCE = {
     "historical_review": "historical compliance evidence",
     "ai_slop": "AI-slop assessment",
 }
+EVIDENCE_REFERENCES = {
+    "coverage": "review/code-coverage-report.md",
+    "acceptance_criteria": "review/acceptance-criteria.md",
+    "coding_guidelines": "review/review-context.md",
+    "historical_review": "pr-insights.json",
+    "ai_slop": "review/review-context.md",
+}
 
 
 def ensure(assessment: dict) -> dict:
     gates = assessment.setdefault("gates", {})
+    recommendations = assessment.setdefault("recommendations", [])
+    existing_recommendations = {item.get("description") for item in recommendations if isinstance(item, dict)}
     for name in GATES:
         gate = gates.setdefault(name, {})
         if not gate.get("status"):
             gate["status"] = "UNAVAILABLE"
             gate["unavailable_reason"] = f"{REQUIRED_EVIDENCE[name]} was not supplied."
+        if gate.get("status") == "UNAVAILABLE":
+            description = f"Supply the {REQUIRED_EVIDENCE[name]} before making a merge decision."
+            if description not in existing_recommendations:
+                recommendations.append({"priority": "REQUIRED", "description": description, "evidence": gate["unavailable_reason"], "reference": EVIDENCE_REFERENCES[name]})
         gate.setdefault("findings", [])
     return assessment
 
