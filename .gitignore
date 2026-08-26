@@ -4,4 +4,15 @@
 .vscode
 .agent
 .pyc
+.env
+._pytest_cache
+.__pycache__
+.env.local
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.swo
+*.DS_Store
+
 /review

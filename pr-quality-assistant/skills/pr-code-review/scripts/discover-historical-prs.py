@@ -68,6 +68,10 @@ def main() -> int:
         else:
             remote = remote_url(root)
             provider = detect_provider(remote) if remote else None
+
+            print(f"Detected provider: {provider}")
+            print(f"Remote URL: {remote}")
+
             if provider is None:
                 payload = {}
                 provider_available = False

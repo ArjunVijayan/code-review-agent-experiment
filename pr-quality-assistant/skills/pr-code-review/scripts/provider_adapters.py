@@ -10,6 +10,9 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode, urlparse
 from urllib.request import Request, urlopen
 
+from dotenv import load_dotenv
+load_dotenv()
+
 
 @dataclass(frozen=True)
 class ProviderRepository:
@@ -40,6 +43,8 @@ def _get_json(url: str, provider: str) -> object:
     headers = {"Accept": "application/json", "User-Agent": "pr-code-review"}
     token_name = "GITHUB_TOKEN" if provider == "github" else "GITLAB_TOKEN"
     token = os.environ.get(token_name) or os.environ.get("VCS_TOKEN")
+
+    print(f"Fetching JSON from URL: {url} with provider: {provider}, token available: {token is not None}")
     if token:
         headers["Authorization"] = f"Bearer {token}"
         if provider == "gitlab":
@@ -49,11 +54,14 @@ def _get_json(url: str, provider: str) -> object:
             return json.load(response)
     except HTTPError as error:
         if error.code in {401, 403}:
+            print(f"{provider} rejected the request with HTTP {error.code}")
             raise ProviderError(f"{provider} rejected the request; set {token_name} or VCS_TOKEN") from error
         if error.code == 404:
+            print(f"{provider} repository or change-request data not found (HTTP 404)")
             raise ProviderError(f"{provider} repository or change-request data was not found or is not accessible") from error
         raise ProviderError(f"{provider} API request failed with HTTP {error.code}") from error
     except URLError as error:
+        print(f"Failed to reach {provider}: {error.reason}")
         raise ProviderError(f"unable to reach {provider}: {error.reason}") from error
     except json.JSONDecodeError as error:
         raise ProviderError(f"{provider} returned invalid JSON") from error
@@ -70,6 +78,7 @@ def _github_requests(repository: ProviderRepository, base_ref: str, limit: int) 
         for pull in pulls:
             if not isinstance(pull, dict) or not pull.get("merged_at"):
                 continue
+
             number = pull.get("number")
             if number is None:
                 continue
@@ -130,8 +139,10 @@ def fetch_merged_change_requests(remote: str, base_ref: str, limit: int) -> dict
     if repository is None:
         raise ProviderError("unsupported VCS provider; add an adapter for this remote host")
     if repository.provider == "github":
+        print(f"Fetching GitHub requests for repository: {repository.namespace}/{repository.name}, base_ref: {base_ref}, limit: {limit}")
         requests = _github_requests(repository, base_ref, limit)
     elif repository.provider == "gitlab":
+        print(f"Fetching GitLab requests for repository: {repository.namespace}/{repository.name}, base_ref: {base_ref}, limit: {limit}")
         requests = _gitlab_requests(repository, base_ref, limit)
     else:
         raise ProviderError(f"no adapter registered for provider {repository.provider}")
