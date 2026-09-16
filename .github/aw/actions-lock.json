@@ -1,0 +1,14 @@
+{
+  "entries": {
+    "ArjunVijayan/code-review-agent-experiment/pr-quality-assistant@v1.2.7": {
+      "repo": "ArjunVijayan/code-review-agent-experiment/pr-quality-assistant",
+      "version": "v1.2.7",
+      "sha": "8c2412c396e3bccfce52e9239c5f3ad4867c7f7a"
+    },
+    "github/gh-aw-actions/setup@v0.88.7": {
+      "repo": "github/gh-aw-actions/setup",
+      "version": "v0.88.7",
+      "sha": "5e508589e03a7757a7e05b26e834292f5445bfb6"
+    }
+  }
+}

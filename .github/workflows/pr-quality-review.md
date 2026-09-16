@@ -6,8 +6,8 @@ on:
     types: [opened, synchronize, reopened]
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
+  pull-requests: read
 
 engine: copilot
 
@@ -17,7 +17,7 @@ plugins:
 safe-outputs:
   add-comment:
     max: 1
-  merge:
+  merge-pull-request:
     max: 1
 ---
 
